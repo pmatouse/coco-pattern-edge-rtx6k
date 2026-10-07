@@ -1,0 +1,12 @@
+GPU_TEST_START
+name, uuid, vbios_version, driver_version
+NVIDIA RTX PRO 6000 Blackwell Server Edition, GPU-365e7189-b4ff-8aa9-a0d0-3c3a2589c32b, 98.02.8D.00.01, 595.58.03
+[Vector addition of 50000 elements]
+Copy input data from the host memory to the CUDA device
+CUDA kernel launch with 196 blocks of 256 threads
+Copy output data from the CUDA device to the host memory
+Test PASSED
+Done
+GPU_VECTORADD_PASS
+188caf3d332edb466dc4c78db094f519c5584b43cad57a8fbff3198cc0905d9e  -
+GPU_SECRET_FETCH_PASS

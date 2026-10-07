@@ -1,5 +1,8 @@
 # GPU-gated model key on edge-rtx6k
 
+> **DRAFT ENGINEERING RUNBOOK / LAB RECORD — NOT PRODUCTION READY.**
+> The policy and listed live tests were validated on the existing lab deployment. The complete clean-cluster procedure has not been replayed; this is not a production-hardened inference installation. Start with the [draft documentation index](edge-rtx6k/README.md) for historical phases, current limits and remaining review work.
+
 This extends the CPU/GPU baseline validated on the Dell PowerEdge XE7745, node
 9c-63-c0-dd-06-52, OpenShift 4.22.15. It adds an explicit model-key authorization
 rule to Trustee 1.2.0. The VM still boots before attestation; the gate controls

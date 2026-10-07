@@ -1,0 +1,585 @@
+{
+  "capturedAt": "2026-10-07",
+  "repositoryCommit": "5f158c30f120f9eb041d5d77a81fedb916684bb3",
+  "applications": [
+    {
+      "name": "acm",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "acm",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.1.*",
+          "resolvedRevision": "0.1.27"
+        }
+      ]
+    },
+    {
+      "name": "baremetal",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/all/baremetal",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "coco-kyverno-policies",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/all/coco-kyverno-policies",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "coco-pattern-baremetal",
+      "health": "Healthy",
+      "sync": "OutOfSync",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "clustergroup",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.9.58",
+          "resolvedRevision": "0.9.58"
+        }
+      ]
+    },
+    {
+      "name": "hello-openshift",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/coco-supported/hello-openshift",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "kbs-access-curl",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/coco-supported/kbs-access-curl",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "kbs-access-sealed",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/coco-supported/kbs-access-sealed",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "kyverno",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/vendor/kyverno",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "openshift-external-secrets",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "openshift-external-secrets",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.0.*",
+          "resolvedRevision": "0.0.4"
+        }
+      ]
+    },
+    {
+      "name": "sandbox",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "sandboxed-containers",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.2.*",
+          "resolvedRevision": "0.2.1"
+        }
+      ]
+    },
+    {
+      "name": "sandbox-policies",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "sandboxed-policies",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.2.*",
+          "resolvedRevision": "0.2.0"
+        }
+      ]
+    },
+    {
+      "name": "storage",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "path": "charts/hub/storage",
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        }
+      ]
+    },
+    {
+      "name": "trustee",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "trustee",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.10.2",
+          "resolvedRevision": "0.10.2"
+        }
+      ]
+    },
+    {
+      "name": "vault",
+      "health": "Healthy",
+      "sync": "Synced",
+      "sources": [
+        {
+          "repoURL": "git@github.com:pmatouse/coco-pattern-edge-rtx6k.git",
+          "targetRevision": "codex/edge-rtx6k",
+          "resolvedRevision": "5f158c30f120f9eb041d5d77a81fedb916684bb3"
+        },
+        {
+          "chart": "hashicorp-vault",
+          "repoURL": "quay.io/validatedpatterns",
+          "targetRevision": "0.1.*",
+          "resolvedRevision": "0.1.8"
+        }
+      ]
+    }
+  ],
+  "subscriptions": [
+    {
+      "namespace": "cert-manager-operator",
+      "name": "openshift-cert-manager-operator",
+      "package": "openshift-cert-manager-operator",
+      "channel": "stable-v1",
+      "source": "redhat-operators",
+      "installedCSV": "cert-manager-operator.v1.20.1",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "external-secrets-operator",
+      "name": "openshift-external-secrets-operator",
+      "package": "openshift-external-secrets-operator",
+      "channel": "stable-v1",
+      "source": "redhat-operators",
+      "installedCSV": "openshift-external-secrets-operator.v1.2.1",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "multicluster-engine",
+      "name": "multicluster-engine",
+      "package": "multicluster-engine",
+      "channel": "stable-2.17",
+      "source": "redhat-operators",
+      "installedCSV": "multicluster-engine.v2.17.3",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "open-cluster-management",
+      "name": "advanced-cluster-management",
+      "package": "advanced-cluster-management",
+      "channel": null,
+      "source": "redhat-operators",
+      "installedCSV": "advanced-cluster-management.v2.17.3",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "openshift-cnv",
+      "name": "kubevirt-hyperconverged",
+      "package": "kubevirt-hyperconverged",
+      "channel": "stable",
+      "source": "redhat-operators",
+      "installedCSV": "kubevirt-hyperconverged-operator.v4.22.12",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "openshift-gitops-operator",
+      "name": "openshift-gitops-operator",
+      "package": "openshift-gitops-operator",
+      "channel": "latest",
+      "source": "redhat-operators",
+      "installedCSV": "openshift-gitops-operator.v1.22.1",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "openshift-nfd",
+      "name": "nfd",
+      "package": "nfd",
+      "channel": "stable",
+      "source": "redhat-operators",
+      "installedCSV": "nfd.4.22.0-202609291750",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "name": "sandboxed-containers-operator",
+      "package": "sandboxed-containers-operator",
+      "channel": "stable",
+      "source": "redhat-operators",
+      "installedCSV": "sandboxed-containers-operator.v1.13.0",
+      "approval": "Manual"
+    },
+    {
+      "namespace": "openshift-storage",
+      "name": "lvms-operator",
+      "package": "lvms-operator",
+      "channel": "stable-4.22",
+      "source": "redhat-operators",
+      "installedCSV": "lvms-operator.v4.22.0",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "patterns-operator",
+      "name": "patterns-operator",
+      "package": "patterns-operator",
+      "channel": "fast",
+      "source": "community-operators",
+      "installedCSV": "patterns-operator.v0.0.81",
+      "approval": "Automatic"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "name": "trustee-operator",
+      "package": "trustee-operator",
+      "channel": "stable",
+      "source": "redhat-operators",
+      "installedCSV": "trustee-operator.v1.2.0",
+      "approval": "Manual"
+    }
+  ],
+  "runtimeImages": [
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856040-xjb6n",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856040-xjb6n",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856040-xjb6n",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856040-xjb6n",
+      "container": "init-data-gzipper",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856040-xjb6n",
+      "container": "reconcile-kataconfig-gpu",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856050-t8df2",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856050-t8df2",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856050-t8df2",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856050-t8df2",
+      "container": "init-data-gzipper",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856050-t8df2",
+      "container": "reconcile-kataconfig-gpu",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856060-pcbwd",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856060-pcbwd",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856060-pcbwd",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856060-pcbwd",
+      "container": "init-data-gzipper",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "imperative-cronjob-29856060-pcbwd",
+      "container": "reconcile-kataconfig-gpu",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856050-57nfq",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856050-57nfq",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856050-57nfq",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856050-57nfq",
+      "container": "unseal-playbook",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856055-6bqkp",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856055-6bqkp",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856055-6bqkp",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856055-6bqkp",
+      "container": "unseal-playbook",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856060-wgj54",
+      "container": "done",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856060-wgj54",
+      "container": "fetch-ca",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856060-wgj54",
+      "container": "git-init",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "imperative",
+      "pod": "unsealvault-cronjob-29856060-wgj54",
+      "container": "unseal-playbook",
+      "image": "quay.io/validatedpatterns/imperative-container:v1",
+      "imageID": "quay.io/validatedpatterns/imperative-container@sha256:6e26bccc1445891d89618ef0ccd80306c4b999337d5d0db29904ccd7ffb8735e"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "pod": "controller-manager-744fdd9f95-5v7qp",
+      "container": "manager",
+      "image": "registry.redhat.io/openshift-sandboxed-containers/osc-rhel9-operator@sha256:d57199ede3a56a51393caf5df72a96a9896c296e4d71f4ee1c86ec7e69bc3123",
+      "imageID": "registry.redhat.io/openshift-sandboxed-containers/osc-rhel9-operator@sha256:3135fb4d265d64d6ab3d43c02a8a252e3ccb3a0245d248d66cb0ba4496cfe5c9"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "pod": "openshift-sandboxed-containers-monitor-4pn9g",
+      "container": "kata-monitor",
+      "image": "registry.redhat.io/openshift-sandboxed-containers/osc-monitor-rhel9@sha256:2a69854ef50aec3cb1e7ee1e7de9bc698c6c2f52fd87c57e57c5a4c3198904a5",
+      "imageID": "registry.redhat.io/openshift-sandboxed-containers/osc-monitor-rhel9@sha256:2a69854ef50aec3cb1e7ee1e7de9bc698c6c2f52fd87c57e57c5a4c3198904a5"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "pod": "operator-metrics-server-9c487b9f4-4mdtf",
+      "container": "metrics-server",
+      "image": "registry.redhat.io/openshift-sandboxed-containers/osc-rhel9-operator@sha256:d57199ede3a56a51393caf5df72a96a9896c296e4d71f4ee1c86ec7e69bc3123",
+      "imageID": "registry.redhat.io/openshift-sandboxed-containers/osc-rhel9-operator@sha256:3135fb4d265d64d6ab3d43c02a8a252e3ccb3a0245d248d66cb0ba4496cfe5c9"
+    },
+    {
+      "namespace": "patterns-operator",
+      "pod": "patterns-operator-console-plugin-6c4b87ff77-pfqld",
+      "container": "patterns-operator-console-plugin",
+      "image": "quay.io/validatedpatterns/patterns-operator-console@sha256:2d4736335e89ebd6296f9f5f94b4aebba72d71f9463b689222dd6b4e5f26209c",
+      "imageID": "quay.io/validatedpatterns/patterns-operator-console@sha256:2d4736335e89ebd6296f9f5f94b4aebba72d71f9463b689222dd6b4e5f26209c"
+    },
+    {
+      "namespace": "patterns-operator",
+      "pod": "patterns-operator-controller-manager-d9fcb6866-fbthv",
+      "container": "manager",
+      "image": "quay.io/validatedpatterns/patterns-operator@sha256:4cc86781f773d5f2ba00059af218e0fb03c5b197d20c7ca35783c1e41a40f7e7",
+      "imageID": "quay.io/validatedpatterns/patterns-operator@sha256:4cc86781f773d5f2ba00059af218e0fb03c5b197d20c7ca35783c1e41a40f7e7"
+    },
+    {
+      "namespace": "patterns-operator",
+      "pod": "patterns-operator-pattern-ui-catalog-859dcfbb46-hlqk8",
+      "container": "patterns-operator-pattern-ui-catalog",
+      "image": "quay.io/validatedpatterns/pattern-ui-catalog:stable-v1",
+      "imageID": "quay.io/validatedpatterns/pattern-ui-catalog@sha256:27107f4d02d4c6556bb6cbd3645b18c440be777d483453237709248586887412"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "pod": "trustee-deployment-5b86dc7446-lr7wd",
+      "container": "kbs",
+      "image": "registry.redhat.io/build-of-trustee/trustee-rhel9@sha256:85312d29d6ea7b96396b567c96893ae2527d83b9fc7a459044ba610c98593fae",
+      "imageID": "registry.redhat.io/build-of-trustee/trustee-rhel9@sha256:75ffad5d97c83c54182816b6f8a5b258f27326c903512e66b09a8cda7fb56b8a"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "pod": "trustee-deployment-5b86dc7446-lr7wd",
+      "container": "secret-converter",
+      "image": "registry.redhat.io/build-of-trustee/trustee-rhel9-operator@sha256:86f994393f9024affd43c8ea08b1ec3b0d42dc26229ba34aff0228eac9415775",
+      "imageID": "registry.redhat.io/build-of-trustee/trustee-rhel9-operator@sha256:807ec7400540d675fd9daa3e710c60ff874ff450dfffc9f59cf8cae3e27c9a97"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "pod": "trustee-operator-controller-manager-76bd6984-tg2jx",
+      "container": "manager",
+      "image": "registry.redhat.io/build-of-trustee/trustee-rhel9-operator@sha256:86f994393f9024affd43c8ea08b1ec3b0d42dc26229ba34aff0228eac9415775",
+      "imageID": "registry.redhat.io/build-of-trustee/trustee-rhel9-operator@sha256:807ec7400540d675fd9daa3e710c60ff874ff450dfffc9f59cf8cae3e27c9a97"
+    },
+    {
+      "namespace": "vault",
+      "pod": "vault-0",
+      "container": "vault",
+      "image": "registry.connect.redhat.com/hashicorp/vault:1.21.4-ubi",
+      "imageID": "registry.connect.redhat.com/hashicorp/vault@sha256:4f6c16f7180629bbcfe5ffec88d8a7ffca1785b1a561afa18ced361cac060340"
+    }
+  ]
+}

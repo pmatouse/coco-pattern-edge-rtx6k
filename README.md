@@ -1,5 +1,10 @@
 # coco-pattern
 
+> **This fork includes draft edge-rtx6k engineering runbooks.** See the
+> [documentation index](docs/edge-rtx6k/README.md) for the CPU/GPU rebuild guides,
+> recorded tests and model-key policy. The clean-cluster procedure has not been
+> replay-verified and the lab is not production hardened.
+
 Validated pattern for deploying confidential containers on OpenShift using the [Validated Patterns](https://validatedpatterns.io/) framework.
 
 Confidential containers use hardware-backed Trusted Execution Environments (TEEs) to isolate workloads from cluster and hypervisor administrators. This pattern deploys and configures the Red Hat CoCo stack — including the sandboxed containers operator, Trustee (Key Broker Service) operator, and Kata infrastructure — on Azure cloud instances and bare metal.

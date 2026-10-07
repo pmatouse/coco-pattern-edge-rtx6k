@@ -1,0 +1,15 @@
+{
+  "import_date": "2026-10-07",
+  "source_bundle": "edge-rtx6k-gpu-rebuild.zip",
+  "source_bundle_sha256": "a7db1858a8800b6b3aed28b60f781c46fa2b3f817fe05094ccb191cef43a0f70",
+  "cpu_baseline_commit": "5f158c30f120f9eb041d5d77a81fedb916684bb3",
+  "gpu_baseline_commit": "877791d35284e718e46d444146b69b93d2eb8aa2",
+  "model_policy_record_commit": "3389273fc1f98d6c2723d36750e4402aa3c2d0ea",
+  "status": "Draft engineering documentation; staged installation tested; clean-cluster replay not performed",
+  "import_changes": [
+    "Draft and historical notices",
+    "Repository paths and documentation index",
+    "Sample application findings",
+    "Regenerated bundle checksums"
+  ]
+}

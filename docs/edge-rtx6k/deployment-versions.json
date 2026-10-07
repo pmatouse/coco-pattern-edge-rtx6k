@@ -1,0 +1,244 @@
+{
+  "recorded_date": "2026-10-07",
+  "source_repository": "https://github.com/pmatouse/coco-pattern-edge-rtx6k",
+  "source_branch": "codex/edge-rtx6k",
+  "source_commit": "877791d35284e718e46d444146b69b93d2eb8aa2",
+  "gpu_commits": [
+    "b3e19098ff408b86b34f5ded530115e4b2fca345 feat: enable pinned NVIDIA passthrough stack on edge-rtx6k",
+    "4fa16a414e6efd9ebbb20b35e61870e310778b0a fix: set CC Manager operator namespace explicitly",
+    "381c077b426e575f2db6299c1e83fed7f1a12ddc feat: validate single-GPU confidential workload and release references",
+    "06d15818f060691d557ad740abec5b0ee41d4116 fix: measure GPU guests with their 15 second agent timeout",
+    "3f4b5905979c06d2b5f8c1c94bf9ef13f5ac277f fix: bound GPU validation commands and mark test startup",
+    "5ce102350fa670590d422f34282757d2f902b274 fix: expose nonsecret GPU results with secure stream policy intact",
+    "877791d35284e718e46d444146b69b93d2eb8aa2 fix: initialize result volume permissions inside the GPU guest"
+  ],
+  "operators": [
+    {
+      "namespace": "nvidia-gpu-operator",
+      "csv": "gpu-operator-certified.v26.3.0",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "nvidia-gpu-operator",
+      "csv": "openshift-external-secrets-operator.v1.2.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "nvidia-gpu-operator",
+      "csv": "openshift-gitops-operator.v1.22.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "nvidia-gpu-operator",
+      "csv": "patterns-operator.v0.0.81",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "csv": "openshift-external-secrets-operator.v1.2.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "csv": "openshift-gitops-operator.v1.22.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "csv": "patterns-operator.v0.0.81",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "openshift-sandboxed-containers-operator",
+      "csv": "sandboxed-containers-operator.v1.13.0",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "csv": "openshift-external-secrets-operator.v1.2.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "csv": "openshift-gitops-operator.v1.22.1",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "csv": "patterns-operator.v0.0.81",
+      "phase": "Succeeded"
+    },
+    {
+      "namespace": "trustee-operator-system",
+      "csv": "trustee-operator.v1.2.0",
+      "phase": "Succeeded"
+    }
+  ],
+  "gpu_images": [
+    {
+      "pod": "gpu-operator-6f5977cd95-tg5ft",
+      "container": "gpu-operator",
+      "image": "nvcr.io/nvidia/gpu-operator@sha256:64ef3dafb9dd28eebe645010e9a5df1efccddea8ad2d61bb6e0a0c4e12eea310",
+      "imageID": "nvcr.io/nvidia/gpu-operator@sha256:64ef3dafb9dd28eebe645010e9a5df1efccddea8ad2d61bb6e0a0c4e12eea310"
+    },
+    {
+      "pod": "nvidia-cc-manager-548rw",
+      "container": "nvidia-cc-manager",
+      "image": "nvcr.io/nvidia/cloud-native/k8s-cc-manager@sha256:22af62e436736c183e76e324d8d0d4927646803604c972f73007d298f02a5211",
+      "imageID": "nvcr.io/nvidia/cloud-native/k8s-cc-manager@sha256:22af62e436736c183e76e324d8d0d4927646803604c972f73007d298f02a5211"
+    },
+    {
+      "pod": "nvidia-kata-sandbox-device-plugin-daemonset-mqqs4",
+      "container": "nvidia-kata-sandbox-device-plugin-ctr",
+      "image": "nvcr.io/nvidia/cloud-native/nvidia-sandbox-device-plugin@sha256:bbb234d120992ca23046fae64521b1ee68443b6f4bdc827aa926912d30fc5f2f",
+      "imageID": "nvcr.io/nvidia/cloud-native/nvidia-sandbox-device-plugin@sha256:6dac25f80e7c9eaa6cc40bb0271fde20cc3bd61b6d91fe35ca6533807069a7fe"
+    },
+    {
+      "pod": "nvidia-sandbox-validator-6mb4q",
+      "container": "nvidia-sandbox-validator",
+      "image": "nvcr.io/nvidia/gpu-operator@sha256:64ef3dafb9dd28eebe645010e9a5df1efccddea8ad2d61bb6e0a0c4e12eea310",
+      "imageID": "nvcr.io/nvidia/gpu-operator@sha256:64ef3dafb9dd28eebe645010e9a5df1efccddea8ad2d61bb6e0a0c4e12eea310"
+    },
+    {
+      "pod": "nvidia-vfio-manager-2mwkm",
+      "container": "nvidia-vfio-manager",
+      "image": "nvcr.io/nvidia/cloud-native/k8s-driver-manager@sha256:6677437faff2c45506484dd9f0f04ad3b4880aa65b26d11f76d169e65497fade",
+      "imageID": "nvcr.io/nvidia/cloud-native/k8s-driver-manager@sha256:1a993036ab364d28e1b45195322fa57c92db7d0507c8ffcfac69bc0f5ff3763f"
+    }
+  ],
+  "applications": [
+    {
+      "name": "acm",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "877791d35284e718e46d444146b69b93d2eb8aa2",
+        "0.1.27"
+      ]
+    },
+    {
+      "name": "baremetal",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "5ce102350fa670590d422f34282757d2f902b274",
+      "revisions": null
+    },
+    {
+      "name": "coco-kyverno-policies",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "coco-pattern-baremetal",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "877791d35284e718e46d444146b69b93d2eb8aa2",
+        "0.9.58"
+      ]
+    },
+    {
+      "name": "gpu-workload",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "hello-openshift",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "kbs-access-curl",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "kbs-access-sealed",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "kyverno",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "nvidia-gpu",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "openshift-external-secrets",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "5ce102350fa670590d422f34282757d2f902b274",
+        "0.0.4"
+      ]
+    },
+    {
+      "name": "sandbox",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "5ce102350fa670590d422f34282757d2f902b274",
+        "0.2.1"
+      ]
+    },
+    {
+      "name": "sandbox-policies",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "5ce102350fa670590d422f34282757d2f902b274",
+        "0.2.0"
+      ]
+    },
+    {
+      "name": "storage",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": "877791d35284e718e46d444146b69b93d2eb8aa2",
+      "revisions": null
+    },
+    {
+      "name": "trustee",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "877791d35284e718e46d444146b69b93d2eb8aa2",
+        "0.10.2"
+      ]
+    },
+    {
+      "name": "vault",
+      "sync": "Synced",
+      "health": "Healthy",
+      "revision": null,
+      "revisions": [
+        "877791d35284e718e46d444146b69b93d2eb8aa2",
+        "0.1.8"
+      ]
+    }
+  ]
+}

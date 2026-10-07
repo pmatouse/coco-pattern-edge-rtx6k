@@ -1,0 +1,63 @@
+
+(microdnf:2): librhsm-WARNING **: 09:53:37.775: Found 0 entitlement certificates
+
+(microdnf:2): librhsm-WARNING **: 09:53:37.776: Found 0 entitlement certificates
+Downloading metadata...
+Downloading metadata...
+Downloading metadata...
+Package                  Repository            Size
+Installing:                                        
+ cpio-2.13-16.el9.x86_64 ubi-9-baseos-rpms 286.2 kB
+ file-5.39-17.el9.x86_64 ubi-9-baseos-rpms  55.0 kB
+Transaction Summary:
+ Installing:        2 packages
+ Reinstalling:      0 packages
+ Upgrading:         0 packages
+ Obsoleting:        0 packages
+ Removing:          0 packages
+ Downgrading:       0 packages
+Downloading packages...
+warning: Unsupported version of key: V6
+
+(microdnf:2): libdnf-WARNING **: 09:53:39.051: failed to parse public key for /etc/pki/rpm-gpg/RPM-GPG-KEY-PQC-redhat-release
+Running transaction test...
+Installing: file;5.39-17.el9;x86_64;ubi-9-baseos-rpms
+Installing: cpio;2.13-16.el9;x86_64;ubi-9-baseos-rpms
+Complete.
+Collecting osc-veritas[snp]==0.1.3rc1
+  Downloading osc_veritas-0.1.3rc1-py3-none-any.whl (27 kB)
+Collecting sev-snp-measure==0.0.13
+  Downloading sev_snp_measure-0.0.13-py3-none-any.whl (23 kB)
+Requirement already satisfied: cryptography>=39.0.1 in /usr/local/lib64/python3.11/site-packages (from sev-snp-measure==0.0.13) (48.0.1)
+Requirement already satisfied: cffi>=2.0.0 in /usr/local/lib64/python3.11/site-packages (from cryptography>=39.0.1->sev-snp-measure==0.0.13) (2.1.1)
+Requirement already satisfied: pycparser in /usr/local/lib/python3.11/site-packages (from cffi>=2.0.0->cryptography>=39.0.1->sev-snp-measure==0.0.13) (3.0)
+Installing collected packages: osc-veritas, sev-snp-measure
+Successfully installed osc-veritas-0.1.3rc1 sev-snp-measure-0.0.13
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+INFO:veritas.platforms.baremetal:Processing OCP 4.22.15
+INFO:veritas.platforms.baremetal:Verifying OCP 4.22.15 release payload...
+INFO:veritas.platforms.baremetal:Release verified: sha256:fed788eac1c99388dd9b78dda4d6a73e39b70abb00ca918d2bb456a97187f0c1 2026-09-17T14:57:31Z 4.22.15
+INFO:veritas.platforms.baremetal:Extensions image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:48cf2f0f325cad11dba35456f34883121b14eb2d60f0aa66897dd63392b9057f
+INFO:veritas.platforms.baremetal:Extracting extensions from quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:48cf2f0f325cad11dba35456f34883121b14eb2d60f0aa66897dd63392b9057f
+INFO:veritas.platforms.baremetal:Found kata RPM: kata-containers-3.31.0-5.rhaos4.22.el9.x86_64.rpm
+INFO:veritas.platforms.baremetal:Found edk2 RPM: edk2-ovmf-20241117-8.el9.noarch.rpm
+INFO:veritas.platforms.baremetal:Found vmlinuz: /tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/vmlinuz
+INFO:veritas.platforms.baremetal:Found initrd: /tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-cc.initrd
+INFO:veritas.platforms.baremetal:Found GPU initrd: /tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-cc-nvidia-gpu-595.58.03.initrd
+INFO:veritas.platforms.baremetal:Found GPU initrd: /tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-nvidia-gpu-595.58.03.initrd
+INFO:veritas.platforms.baremetal:Found OVMF.inteltdx.fd: /tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.inteltdx.fd
+INFO:veritas.platforms.baremetal:Found OVMF.amdsev.fd: /tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.amdsev.fd
+INFO:veritas.platforms.baremetal:Generating measurements for regular (non-GPU) pods
+INFO:veritas.platforms.baremetal:Computed SNP measurements for 32 cmdline variant(s), 32 unique
+INFO:veritas.platforms.baremetal:Generating measurements for GPU pods: kata-cc-nvidia-gpu-595.58.03.initrd
+GPU_ARTIFACT_PATHS {'vmlinuz': '/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/vmlinuz', 'initrd': '/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-cc-nvidia-gpu-595.58.03.initrd', 'gpu_initrds': "[PosixPath('/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-cc-nvidia-gpu-595.58.03.initrd'), PosixPath('/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-nvidia-gpu-595.58.03.initrd')]", 'ovmf_tdx': '/tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.inteltdx.fd', 'ovmf_snp': '/tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.amdsev.fd'}
+GPU_ARTIFACT_SHA256 vmlinuz 0317da8a23853124ed4e4da6c56254f40a741ff4507e1afbbcb7f32e5c097206
+GPU_ARTIFACT_SHA256 initrd abd755287282a268578687137bf437caeda6139c1a654f18d13f8a72a68892ca
+GPU_ARTIFACT_SHA256 ovmf_snp 1aa196fe94e56809aa668fc4eabfc50923131288e018bcf0c6ab4dd3581bd850
+INFO:veritas.platforms.baremetal:Generating measurements for GPU pods: kata-nvidia-gpu-595.58.03.initrd
+GPU_ARTIFACT_PATHS {'vmlinuz': '/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/vmlinuz', 'initrd': '/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-nvidia-gpu-595.58.03.initrd', 'gpu_initrds': "[PosixPath('/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-cc-nvidia-gpu-595.58.03.initrd'), PosixPath('/tmp/tmpr5tv7z20/usr/share/kata-containers/osbuilder-images/6.12.0-211.16.1.el10_2.x86_64/kata-nvidia-gpu-595.58.03.initrd')]", 'ovmf_tdx': '/tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.inteltdx.fd', 'ovmf_snp': '/tmp/tmpr5tv7z20/usr/share/edk2/ovmf/OVMF.amdsev.fd'}
+GPU_ARTIFACT_SHA256 vmlinuz 0317da8a23853124ed4e4da6c56254f40a741ff4507e1afbbcb7f32e5c097206
+GPU_ARTIFACT_SHA256 initrd eed016b4f2b22b740a42c143d3b74e90b1a6a66553ac6fe3db45ec7e826ae6c5
+GPU_ARTIFACT_SHA256 ovmf_snp 1aa196fe94e56809aa668fc4eabfc50923131288e018bcf0c6ab4dd3581bd850
+INFO:veritas.platforms.baremetal:Cached extensions: /pattern-home/.cache/veritas/extensions/48cf2f0f325cad11dba35456f34883121b14eb2d60f0aa66897dd63392b9057f
+Saved 32 CPU launch measurements and exact TCB reference values.

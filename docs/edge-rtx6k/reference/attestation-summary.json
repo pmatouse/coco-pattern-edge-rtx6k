@@ -1,0 +1,33 @@
+{
+  "observed_gpu_claims": [
+    {
+      "dbgstat": "disabled",
+      "secboot": true,
+      "measres": "success",
+      "x-nvidia-gpu-driver-version": "595.58.03",
+      "x-nvidia-gpu-vbios-version": "98.02.8D.00.01",
+      "x-nvidia-overall-att-result": true
+    },
+    {
+      "dbgstat": "disabled",
+      "secboot": true,
+      "measres": "success",
+      "x-nvidia-gpu-driver-version": "595.58.03",
+      "x-nvidia-gpu-vbios-version": "98.02.8D.00.01",
+      "x-nvidia-overall-att-result": true
+    },
+    {
+      "dbgstat": "disabled",
+      "secboot": true,
+      "measres": "success",
+      "x-nvidia-gpu-driver-version": "595.58.03",
+      "x-nvidia-gpu-vbios-version": "98.02.8D.00.01",
+      "x-nvidia-overall-att-result": true
+    }
+  ],
+  "cpu0_affirming": true,
+  "gpu0_affirming": true,
+  "nvidia_endorsement_passed": true,
+  "same_composite_appraisal_affirming": true,
+  "test_resource_http_200": true
+}
