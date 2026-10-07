@@ -24,6 +24,10 @@ clusterGroup:
         - name: tdx.enabled
           value: "false"
     trustee:
+      chart: null
+      path: charts/hub/trustee-edge
+      repoURL: git@github.com:pmatouse/coco-pattern-edge-rtx6k.git
+      chartVersion: edge-trustee-0.10.3-1
       # Helm replaces arrays; retain SNP and bare-metal reference loading.
       overrides:
         - name: kbs.snp.enabled
