@@ -1,0 +1,122 @@
+GUEST_PRIVATE_TMPFS_PASS
+REGISTRY_DIGEST_VERIFY_PASS
+TRUSTEE_KEY_FETCH_START
+TRUSTEE_KEY_FETCH_PASS
+WRONG_KEY_REJECTED_PASS
+TAMPERED_CIPHERTEXT_REJECTED_PASS
+MODEL_AUTHENTICATED_DECRYPT_PASS
+GPU_DRIVER_QUERY: 0 NVIDIA RTX PRO 6000 Blackwell Server Edition, 595.58.03, GPU-4a02e916-3279-39f2-f461-367a5f69356f 
+CUDA_DRIVER_FILES: ['/usr/lib64/libcuda.so.595.58.03', '/usr/lib64/libcuda.so', '/usr/lib64/libcuda.so.1']
+CUDA_DRIVER_INIT: 0
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+CUDA_GPU_PROBE_PASS
+VLLM_START
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+INFO 10-07 15:41:00 [__init__.py:241] Automatically detected platform cuda.
+WARNING 10-07 15:41:03 [__init__.py:1726] argument '--disable-log-requests' is deprecated and replaced with '--enable-log-requests'. This will be removed in v0.12.0.
+(APIServer pid=1) INFO 10-07 15:41:03 [api_server.py:1805] vLLM API server version 0.10.1.1+381074ae.nv25.09
+(APIServer pid=1) INFO 10-07 15:41:03 [utils.py:326] non-default args: {'model_tag': '/private/model', 'host': '0.0.0.0', 'model': '/private/model', 'dtype': 'bfloat16', 'max_model_len': 2048, 'enforce_eager': True, 'served_model_name': ['qwen3-0.6b-encrypted'], 'generation_config': 'vllm', 'gpu_memory_utilization': 0.25, 'max_num_seqs': 4}
+(APIServer pid=1) INFO 10-07 15:41:07 [__init__.py:711] Resolved architecture: Qwen3ForCausalLM
+(APIServer pid=1) INFO 10-07 15:41:07 [__init__.py:1750] Using max model len 2048
+(APIServer pid=1) INFO 10-07 15:41:09 [scheduler.py:222] Chunked prefill is enabled with max_num_batched_tokens=8192.
+(APIServer pid=1) INFO 10-07 15:41:09 [__init__.py:3565] Cudagraph is disabled under eager mode
+/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py:63: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+  import pynvml  # type: ignore[import]
+INFO 10-07 15:41:11 [__init__.py:241] Automatically detected platform cuda.
+(EngineCore_0 pid=100) INFO 10-07 15:41:13 [core.py:636] Waiting for init message from front-end.
+(EngineCore_0 pid=100) INFO 10-07 15:41:13 [core.py:74] Initializing a V1 LLM engine (v0.10.1.1+381074ae.nv25.09) with config: model='/private/model', speculative_config=None, tokenizer='/private/model', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config={}, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=2048, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=True, kv_cache_dtype=auto, device_config=cuda, decoding_config=DecodingConfig(backend='auto', disable_fallback=False, disable_any_whitespace=False, disable_additional_properties=False, reasoning_backend=''), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None), seed=0, served_model_name=qwen3-0.6b-encrypted, enable_prefix_caching=True, chunked_prefill_enabled=True, use_async_output_proc=True, pooler_config=None, compilation_config={"level":0,"debug_dump_path":"","cache_dir":"","backend":"","custom_ops":[],"splitting_ops":null,"use_inductor":true,"compile_sizes":[],"inductor_compile_config":{"enable_auto_functionalized_v2":false},"inductor_passes":{},"cudagraph_mode":0,"use_cudagraph":true,"cudagraph_num_of_warmups":0,"cudagraph_capture_sizes":[],"cudagraph_copy_inputs":false,"full_cuda_graph":false,"pass_config":{},"max_capture_size":0,"local_cache_dir":null}
+[W1007 15:41:16.599197357 ProcessGroupNCCL.cpp:927] Warning: TORCH_NCCL_AVOID_RECORD_STREAMS is the default now, this environment variable is thus deprecated. (function operator())
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+(EngineCore_0 pid=100) INFO 10-07 15:41:16 [parallel_state.py:1134] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0, EP rank 0
+(EngineCore_0 pid=100) INFO 10-07 15:41:16 [topk_topp_sampler.py:50] Using FlashInfer for top-p & top-k sampling.
+(EngineCore_0 pid=100) INFO 10-07 15:41:16 [gpu_model_runner.py:1953] Starting to load model /private/model...
+(EngineCore_0 pid=100) INFO 10-07 15:41:16 [gpu_model_runner.py:1985] Loading model from scratch...
+(EngineCore_0 pid=100) INFO 10-07 15:41:16 [cuda.py:328] Using Flash Attention backend on V1 engine.
+(EngineCore_0 pid=100) 
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(EngineCore_0 pid=100) 
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  3.63it/s]
+(EngineCore_0 pid=100) 
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  3.62it/s]
+(EngineCore_0 pid=100) 
+(EngineCore_0 pid=100) INFO 10-07 15:41:17 [default_loader.py:262] Loading weights took 0.29 seconds
+(EngineCore_0 pid=100) INFO 10-07 15:41:17 [gpu_model_runner.py:2007] Model loading took 1.1201 GiB and 0.443569 seconds
+(EngineCore_0 pid=100) INFO 10-07 15:41:48 [gpu_worker.py:276] Available KV cache memory: 22.37 GiB
+(EngineCore_0 pid=100) INFO 10-07 15:41:48 [kv_cache_utils.py:849] GPU KV cache size: 209,456 tokens
+(EngineCore_0 pid=100) INFO 10-07 15:41:48 [kv_cache_utils.py:853] Maximum concurrency for 2,048 tokens per request: 102.27x
+(EngineCore_0 pid=100) INFO 10-07 15:41:48 [core.py:214] init engine (profile, create kv cache, warmup model) took 31.13 seconds
+(EngineCore_0 pid=100) INFO 10-07 15:41:49 [__init__.py:3565] Cudagraph is disabled under eager mode
+(APIServer pid=1) INFO 10-07 15:41:49 [loggers.py:142] Engine 000: vllm cache_config_info with initialization after num_gpu_blocks is: 13091
+(APIServer pid=1) INFO 10-07 15:41:49 [api_server.py:1611] Supported_tasks: ['generate']
+(APIServer pid=1) INFO 10-07 15:41:49 [api_server.py:1880] Starting vLLM API server 0 on http://0.0.0.0:8000
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:36] Available routes are:
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /openapi.json, Methods: HEAD, GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /docs, Methods: HEAD, GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /docs/oauth2-redirect, Methods: HEAD, GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /redoc, Methods: HEAD, GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /health, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /load, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /ping, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /ping, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /tokenize, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /detokenize, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/models, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /version, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/responses, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/responses/{response_id}, Methods: GET
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/responses/{response_id}/cancel, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/chat/completions, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/completions, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/embeddings, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /pooling, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /classify, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /score, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/score, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/audio/transcriptions, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/audio/translations, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /rerank, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v1/rerank, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /v2/rerank, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /scale_elastic_ep, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /is_scaling_elastic_ep, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /invocations, Methods: POST
+(APIServer pid=1) INFO 10-07 15:41:49 [launcher.py:44] Route: /metrics, Methods: GET
+(APIServer pid=1) INFO:     Started server process [1]
+(APIServer pid=1) INFO:     Waiting for application startup.
+(APIServer pid=1) INFO:     Application startup complete.
+(APIServer pid=1) INFO:     10.128.0.2:37728 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:47408 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:60376 - "POST /v1/chat/completions?timeout=1m30s HTTP/1.1" 400 Bad Request
+(APIServer pid=1) INFO:     10.128.0.2:60382 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:33530 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:45550 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:40898 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:42:47 [chat_utils.py:470] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+(EngineCore_0 pid=100) WARNING 10-07 15:42:47 [cudagraph_dispatcher.py:101] cudagraph dispatching keys are not initialized. No cudagraph will be used.
+(APIServer pid=1) INFO:     10.128.0.2:59422 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:42:49 [loggers.py:123] Engine 000: Avg prompt throughput: 2.6 tokens/s, Avg generation throughput: 0.2 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=1) INFO:     10.128.0.2:59434 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:42:59 [loggers.py:123] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=1) INFO:     10.128.0.2:46266 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:60562 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:60562 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:60562 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:43:09 [loggers.py:123] Engine 000: Avg prompt throughput: 6.2 tokens/s, Avg generation throughput: 1.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=1) INFO:     10.128.0.2:60564 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:43:19 [loggers.py:123] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=1) INFO:     10.128.0.2:59828 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:46378 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:50596 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:44620 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:42968 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=1) INFO:     10.128.0.2:42980 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:44:09 [loggers.py:123] Engine 000: Avg prompt throughput: 1.9 tokens/s, Avg generation throughput: 0.9 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 15.0%
+(APIServer pid=1) INFO:     10.128.0.2:44026 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=1) INFO 10-07 15:44:19 [loggers.py:123] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 15.0%
+(APIServer pid=1) INFO:     10.128.0.2:56374 - "GET /health HTTP/1.1" 200 OK

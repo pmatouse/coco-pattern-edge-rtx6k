@@ -20,6 +20,8 @@ processors and four RTX PRO 6000 Blackwell Server Edition GPUs, running OpenShif
 | [Model-key policy runbook](../model-key-policy.md) | Later implemented CPU-and-GPU requirement for `default/model-keys/edge-model-key`, staging, tests and recovery. |
 | [Model-key validation record](../../tests/model-key-policy/validation-2026-10-07.json) | 68 policy cases and live positive/negative checks; this is a recorded result, not a fresh test on opening the file. |
 | [Encrypted input GPU test](../encrypted-gpu-test.md) | Pre-encrypted arrays decrypted with a Trustee key inside a GPU CVM; CUDA output and denial cases verified. |
+| [Encrypted Qwen inference](../encrypted-qwen-inference.md) | Qwen3-0.6B encrypted in the internal registry; Trustee key release, guest decryption and GPU inference verified. |
+| [GPU PCIe incident](GPU-BAR-RECOVERY.md) | Two cards excluded from allocation after fatal PCIe errors; quarantine is temporary, not a persistent hardware repair. |
 | [Sample application results](SAMPLE-APPLICATIONS.md) | Exec-policy and KBS delivery tests; sealed-secret example remains a literal placeholder. |
 
 The GPU guide stops before the model-key phase. Its statements that mandatory GPU
@@ -38,10 +40,14 @@ model keys remain mounted in KBS.
 The installed environment passed CPU confidential-container tests, a one-GPU CUDA
 vector addition, combined CPU/GPU appraisal, model-key retrieval and denial tests,
 and secure guest exec denial. CC readiness and allocation were checked for all four
-cards; this is not a four-GPU-in-one-VM validation or an exhaustive per-card test.
+cards at that earlier stage; this was not a four-GPU-in-one-VM validation or an
+exhaustive per-card test. Later Qwen bring-up exposed fatal PCIe errors on two cards;
+only two are currently allocated. The simple vector-add Deployment is paused to
+make one GPU available for Qwen; the encrypted-array demo remains enabled.
 
-The clean-cluster procedure has not been destructively rerun. No encrypted-model
-loading or inference server has been deployed. Vendor support for the exact
+The clean-cluster procedure has not been destructively rerun. Encrypted Qwen model
+loading and a vLLM inference request were subsequently verified; follow the newer
+Qwen runbook for registry, key provisioning and runtime details. Vendor support for the exact
 Dell/Turin/RTX combination has not been established by these lab tests. Some
 inherited dependency versions float, so the bundle is not a complete offline
 mirror or a byte-for-byte lock of the stack.

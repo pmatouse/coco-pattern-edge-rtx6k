@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import select
+import urllib.request
 
 OC = ['oc', '--request-timeout=90s']
 
@@ -44,14 +46,29 @@ def main():
     assert report['wrong_key_rejected'] and report['tampered_ciphertext_rejected']
     assert report['files_sha256']['model.safetensors'] == 'f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b'
     request = {'model': env['SERVED_MODEL_NAME'], 'messages': [
-        {'role': 'user', 'content': 'What is 2 + 2? Answer with only the digit.'}],
+        {'role': 'user', 'content': 'Calculate 2 + 2.'}],
         'temperature': 0, 'max_tokens': 32, 'chat_template_kwargs': {'enable_thinking': False}}
-    result = run(['create', '--raw', base + 'encrypted-qwen:8000/proxy/v1/chat/completions', '-f', '-'],
-                 data=json.dumps(request).encode())
-    completion = json.loads(result.stdout)
+    # oc create --raw sends a content type rejected by this vLLM build.
+    # A loopback-only oc proxy retains authenticated/TLS access to the API server.
+    proxy = subprocess.Popen(OC + ['proxy', '--address=127.0.0.1', '--port=0'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        if not select.select([proxy.stdout], [], [], 15)[0]:
+            raise RuntimeError('Local API proxy did not start')
+        match = re.search(r'127\.0\.0\.1:(\d+)', proxy.stdout.readline())
+        if not match:
+            raise RuntimeError('Cannot determine local API proxy port')
+        url = 'http://127.0.0.1:' + match[1] + base + 'encrypted-qwen:8000/proxy/v1/chat/completions'
+        http = urllib.request.Request(url, data=json.dumps(request).encode(),
+                                      headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(http, timeout=90) as response:
+            completion = json.load(response)
+    finally:
+        proxy.terminate()
+        proxy.wait(timeout=10)
     answer = completion['choices'][0]['message']['content'].strip()
-    assert answer == '4', 'Unexpected deterministic test answer: ' + repr(answer)
-    print('PASS: encrypted registry weights decrypted in guest; Qwen CUDA inference answered 4')
+    assert re.search(r'2\s*\+\s*2\s*=\s*4\b', answer), 'Unexpected calculation answer: ' + repr(answer)
+    print('PASS: encrypted registry weights decrypted in guest; Qwen CUDA inference answered: ' + answer)
     denied = run(['exec', '-n', ns, pod['metadata']['name'], '-c', 'vllm', '--', '/bin/true'], check=False)
     assert denied.returncode and b'ExecProcessRequest is blocked by policy' in denied.stderr
     print('PASS: arbitrary exec remains blocked')

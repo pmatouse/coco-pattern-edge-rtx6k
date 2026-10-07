@@ -29,8 +29,8 @@ guest memory, and launches vLLM from that local model directory.
 
 Qwen's [official model card](https://huggingface.co/Qwen/Qwen3-0.6B) documents the
 Apache-2.0 model and vLLM support. NVIDIA's [25.09 release notes](https://docs.nvidia.com/deeplearning/frameworks/vllm-release-notes/rel-25-09.html)
-list RTX PRO 6000 Blackwell Server Edition functional support. Successful local
-validation must still be established for this exact confidential runtime.
+list RTX PRO 6000 Blackwell Server Edition functional support. The live test on
+this confidential runtime passed on 7 October 2026; see the recorded results below.
 
 ## What is encrypted and where it lives
 
@@ -167,15 +167,23 @@ an artifact or a key on another cluster.
 
 ## Inference request
 
-Use the authenticated Kubernetes service proxy:
+Start an authenticated Kubernetes API proxy bound only to localhost (leave it
+running in one terminal):
 
 ```sh
-cat <<'JSON' | oc create --raw \
-  /api/v1/namespaces/gpu-workload/services/encrypted-qwen:8000/proxy/v1/chat/completions \
-  -f -
+oc proxy --address=127.0.0.1 --port=18081
+```
+
+From another terminal, send JSON with the required content type:
+
+```sh
+curl --fail-with-body --silent --show-error \
+  -H 'Content-Type: application/json' \
+  http://127.0.0.1:18081/api/v1/namespaces/gpu-workload/services/encrypted-qwen:8000/proxy/v1/chat/completions \
+  --data-binary @- <<'JSON'
 {
   "model": "qwen3-0.6b-encrypted",
-  "messages": [{"role": "user", "content": "What is 2 + 2? Answer with only the digit."}],
+  "messages": [{"role": "user", "content": "Calculate 2 + 2."}],
   "temperature": 0,
   "max_tokens": 32,
   "chat_template_kwargs": {"enable_thinking": false}
@@ -183,7 +191,7 @@ cat <<'JSON' | oc create --raw \
 JSON
 ```
 
-The test expects answer `4`, checks the producer's weights hash and configured
+The test expects a calculation containing `2 + 2 = 4`, checks the producer's weights hash and configured
 artifact digest, confirms CUDA execution and secure exec denial, and requests the
 same key from the CPU-only `hello-openshift/insecure-policy` guest. It requires a
 fresh KBS `PolicyDeny` / HTTP 401 record for that CPU-only request. A CDH HTTP 500
@@ -202,6 +210,37 @@ allocation; see the [hardware incident record](edge-rtx6k/GPU-BAR-RECOVERY.md).
 The earlier vector-add deployment is scaled to zero to release its previously
 validated GPU for Qwen; the encrypted-array deployment stays running. No
 attestation policy was relaxed.
+
+## Recorded lab result — 7 October 2026
+
+The [validation record](../tests/encrypted-inference/validation-2026-10-07.json)
+and [startup log](../tests/encrypted-inference/startup-2026-10-07.log) record a real
+request to vLLM after loading the encrypted artifact. The model runs on
+`GPU-4a02e916-3279-39f2-f461-367a5f69356f` (host PCI `0001:04:00.0`), with guest
+NVIDIA driver `595.58.03`, CUDA 13.0 and compute capability 12.0. The runtime loaded
+1.1201 GiB of model data on the GPU.
+
+```text
+REGISTRY_DIGEST_VERIFY_PASS
+TRUSTEE_KEY_FETCH_PASS
+WRONG_KEY_REJECTED_PASS
+TAMPERED_CIPHERTEXT_REJECTED_PASS
+MODEL_AUTHENTICATED_DECRYPT_PASS
+CUDA_DRIVER_INIT: 0
+CUDA_GPU_PROBE_PASS
+VLLM_START
+```
+
+The API returned `2 + 2 = 4.` for `Calculate 2 + 2.`. Additional manual smoke
+requests returned `Paris` and echoed `confidential`. The validator confirmed the
+pinned artifact digest and weights SHA-256, no model-key Secret/PVC/hostPath mount,
+offline model loading, blocked `ExecProcessRequest`, and a fresh KBS `PolicyDeny`
+with HTTP 401 for the same Qwen key requested from a CPU-only SNP guest.
+
+The old encrypted-array pod became unresponsive during this work, without a new
+host PCIe error in the inspected kernel log. Recreating it restored all checks,
+including `GPU_VECTOR_ADD_MATCH_PASS count=4096`. Its readiness loss is recorded
+without claiming a diagnosed root cause.
 
 ## Boundaries and limitations
 
@@ -230,3 +269,13 @@ attestation policy was relaxed.
   separately protected key if the exact artifact must survive cluster replacement.
 
 The 32 GiB guest failed unpacking the vLLM image with `No space left on device` in the guest filesystem. The chart therefore allocates 64 GiB; host image caching does not avoid the separate guest image pull/unpack.
+
+The NGC 25.09 image includes a 580-series CUDA compatibility library, while this
+guest injects driver 595.58.03. The chart removes `/usr/local/cuda/compat/lib` from
+`LD_LIBRARY_PATH` and adds `/usr/lib64`, where CDI places the RHEL guest driver
+libraries. The Ubuntu-based vLLM image does not search that directory by default. NVIDIA documents that older forward
+compatibility packages are not supported on newer drivers in its
+[CUDA compatibility guide](https://docs.nvidia.com/deploy/cuda-compatibility/forward-compatibility.html).
+Startup records the driver query and `cuInit` result before its CUDA computation.
+
+The first digit-only arithmetic prompt returned `2`; the clearer `Calculate 2 + 2.` prompt returned `2 + 2 = 4.`. This is a workflow smoke test, not an accuracy benchmark. `oc create --raw` received HTTP 400 from this vLLM build; use the explicit JSON content type shown above. The validator creates and terminates its own loopback-only API proxy.
