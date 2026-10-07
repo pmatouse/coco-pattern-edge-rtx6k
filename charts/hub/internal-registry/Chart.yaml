@@ -1,0 +1,5 @@
+apiVersion: v2
+name: internal-registry
+description: Persistent internal OpenShift registry for encrypted model artifacts
+version: 0.1.0
+type: application

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: encrypted-model-registry
+  namespace: openshift-image-registry
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: {{ .Values.registryStorage.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.registryStorage.size | quote }}
+---
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  managementState: Managed
+  replicas: 1
+  rolloutStrategy: Recreate
+  defaultRoute: false
+  storage:
+    pvc:
+      claim: encrypted-model-registry

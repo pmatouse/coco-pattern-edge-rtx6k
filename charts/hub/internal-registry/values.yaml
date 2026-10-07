@@ -1,0 +1,3 @@
+registryStorage:
+  storageClass: lvms-vg1
+  size: 50Gi

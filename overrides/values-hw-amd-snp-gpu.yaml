@@ -17,6 +17,13 @@ clusterGroup:
         argocd.argoproj.io/sync-wave: "25"
 
   applications:
+    internal-registry:
+      name: internal-registry
+      namespace: openshift-image-registry
+      project: hub
+      path: charts/hub/internal-registry
+      annotations:
+        argocd.argoproj.io/sync-wave: "20"
     intel-dcap:
       disabled: true
     baremetal:
