@@ -1,0 +1,70 @@
+{{- if .Values.producer.enabled }}
+# One-time trusted data-producer operation, rendered explicitly by the operator.
+# This job mounts a key and runs outside the confidential workload boundary.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.producer.jobName }}
+  namespace: {{ .Values.producer.namespace }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 3600
+  template:
+    spec:
+      serviceAccountName: encrypted-model-producer
+      restartPolicy: Never
+      containers:
+        - name: producer
+          image: {{ .Values.producer.image | quote }}
+          command: [python3, /scripts/producer.py]
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: REGISTRY_HOST
+              value: {{ .Values.registry.host | quote }}
+            - name: REGISTRY_REPOSITORY
+              value: {{ .Values.registry.repository | quote }}
+            - name: REGISTRY_CA
+              value: /registry-ca/service-ca.crt
+            - name: ARTIFACT_TAG
+              value: {{ .Values.producer.tag | quote }}
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - {name: scripts, mountPath: /scripts, readOnly: true}
+            - {name: model-key, mountPath: /model-key, readOnly: true}
+            - {name: registry-ca, mountPath: /registry-ca, readOnly: true}
+            - {name: plaintext, mountPath: /plaintext}
+            - {name: encrypted, mountPath: /encrypted}
+      volumes:
+        - name: scripts
+          configMap:
+            name: encrypted-model-producer
+        - name: model-key
+          secret:
+            secretName: model-keys
+            items:
+              - {key: qwen3-06b, path: qwen3-06b}
+        - name: registry-ca
+          configMap:
+            name: model-registry-ca
+        - name: plaintext
+          emptyDir:
+            medium: Memory
+            sizeLimit: 3Gi
+        - name: encrypted
+          emptyDir:
+            sizeLimit: 8Gi
+{{- end }}

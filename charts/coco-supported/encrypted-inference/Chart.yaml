@@ -1,0 +1,5 @@
+apiVersion: v2
+name: encrypted-inference
+description: Attestation-gated encrypted Qwen weights from the internal registry
+version: 0.1.0
+type: application

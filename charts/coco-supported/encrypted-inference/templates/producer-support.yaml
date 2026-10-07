@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: encrypted-model-producer
+  namespace: {{ .Values.producer.namespace }}
+data:
+  artifact.py: |
+{{ .Files.Get "files/artifact.py" | indent 4 }}
+  producer.py: |
+{{ .Files.Get "files/producer.py" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-registry-ca
+  namespace: {{ .Values.producer.namespace }}
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: encrypted-model-producer
+  namespace: {{ .Values.producer.namespace }}
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: encrypted-qwen3-06b
+  namespace: {{ .Release.Namespace }}
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: encrypted-model-producer-push
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-builder
+subjects:
+  - kind: ServiceAccount
+    name: encrypted-model-producer
+    namespace: {{ .Values.producer.namespace }}

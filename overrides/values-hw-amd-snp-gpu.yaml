@@ -17,6 +17,13 @@ clusterGroup:
         argocd.argoproj.io/sync-wave: "25"
 
   applications:
+    encrypted-inference:
+      name: encrypted-inference
+      namespace: gpu-workload
+      project: hub
+      path: charts/coco-supported/encrypted-inference
+      annotations:
+        argocd.argoproj.io/sync-wave: "30"
     internal-registry:
       name: internal-registry
       namespace: openshift-image-registry

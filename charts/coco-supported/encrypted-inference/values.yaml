@@ -1,0 +1,18 @@
+inference:
+  enabled: false
+  image: nvcr.io/nvidia/vllm@sha256:15f380ad9c32f0ac57ac16e4b778c6f733c88b9ffe3a936035d0a59ad17b1aab
+  runtimeClassName: kata-cc-nvidia-gpu
+  memoryMiB: "65536"
+  cpus: "8"
+  artifactDigest: ""
+  servedModelName: qwen3-0.6b-encrypted
+registry:
+  host: image-registry.openshift-image-registry.svc:5000
+  repository: gpu-workload/encrypted-qwen3-06b
+producer:
+  enabled: false
+  namespace: trustee-operator-system
+  jobName: prepare-encrypted-qwen
+  tag: qwen3-06b-c1899de-v1
+  image: registry.access.redhat.com/ubi9/python-312@sha256:56fad467cb1e41666f0028b7fd71107df0556bcc9ecfc577597858c85618f55c
+resultsImage: registry.redhat.io/ubi9/httpd-24@sha256:68a91ff691092f455fea682330c499588747231c16516cd4f35aff821e6847f2
