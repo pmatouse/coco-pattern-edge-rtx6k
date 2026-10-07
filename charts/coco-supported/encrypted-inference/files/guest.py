@@ -97,6 +97,16 @@ def main():
     (PRIVATE/'staging').rename(PRIVATE/'model')
     layer.unlink()
     stage('MODEL_AUTHENTICATED_DECRYPT_PASS')
+    # Nonsecret driver diagnostics remain available even when CUDA initialization fails.
+    diagnostics = subprocess.run(['nvidia-smi', '--query-gpu=name,driver_version,uuid', '--format=csv,noheader'],
+                                 capture_output=True, text=True, timeout=30)
+    print('GPU_DRIVER_QUERY:', diagnostics.returncode, diagnostics.stdout.strip(), diagnostics.stderr.strip(), flush=True)
+    import ctypes
+    driver = ctypes.CDLL('libcuda.so.1')
+    result = driver.cuInit(0)
+    print('CUDA_DRIVER_INIT:', result, flush=True)
+    if result != 0:
+        raise RuntimeError('CUDA driver initialization failed with code ' + str(result))
     import torch
     if not torch.cuda.is_available():
         raise RuntimeError('CUDA GPU unavailable; CPU fallback is forbidden')
