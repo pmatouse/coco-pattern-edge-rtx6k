@@ -24,14 +24,19 @@ spec:
       runtimeClassName: {{ .Values.runtimeClassName }}
       containers:
         - name: gpu-cc-verifier
-          image: quay.io/openshift_sandboxed_containers/gpu-verifier:ubi9
+          image: {{ .Values.image | quote }}
           imagePullPolicy: Always
           command: ["/bin/bash"]
           args:
             - -c
             - |
               set -euo pipefail
+              nvidia-smi --query-gpu=name,uuid,vbios_version,driver_version --format=csv
+              nvidia-smi -q | sed -n '/Confidential/,+16p'
               /opt/cuda-samples/Samples/0_Introduction/vectorAdd/build/vectorAdd
+              echo GPU_VECTORADD_PASS
+              curl --fail --silent --show-error http://127.0.0.1:8006/cdh/resource/default/kbsres1/key3 | sha256sum
+              echo GPU_SECRET_FETCH_PASS
               sleep 36000
           volumeMounts:
             - name: initdata

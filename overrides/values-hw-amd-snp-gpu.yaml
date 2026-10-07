@@ -48,7 +48,7 @@ clusterGroup:
       namespace: gpu-workload
       project: workloads
       path: charts/coco-supported/gpu-workload
-      # Enable only after GPU resources and trusted launch measurements are ready.
-      disabled: true
+      # One GPU per confidential VM; CPU and GPU references must be loaded first.
+      disabled: false
       annotations:
         argocd.argoproj.io/sync-wave: "30"
