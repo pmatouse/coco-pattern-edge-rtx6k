@@ -75,6 +75,9 @@ spec:
               mountPath: /opt/confidential-containers/initdata
               readOnly: true
         - name: results
+          # Secure agent policy denies stdout streaming; avoid filling its unread pipe.
+          command: [/bin/bash, -ec]
+          args: ['exec container-entrypoint /usr/bin/run-httpd > /dev/null 2>&1']
           image: {{ .Values.resultsImage | quote }}
           securityContext:
             runAsUser: 1001

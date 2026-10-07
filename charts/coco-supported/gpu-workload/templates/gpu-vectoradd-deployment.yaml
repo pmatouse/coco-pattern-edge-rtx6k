@@ -67,6 +67,9 @@ spec:
             limits:
               nvidia.com/pgpu: 1
         - name: results
+          # Secure agent policy denies stdout streaming; avoid filling its unread pipe.
+          command: [/bin/bash, -ec]
+          args: ['exec container-entrypoint /usr/bin/run-httpd > /dev/null 2>&1']
           securityContext:
             runAsUser: 1001
           image: {{ .Values.resultsImage | quote }}
