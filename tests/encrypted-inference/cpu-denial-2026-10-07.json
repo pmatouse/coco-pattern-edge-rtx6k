@@ -1,0 +1,7 @@
+{
+  "checked_at": "2026-10-07T15:10:11.539115Z",
+  "key_resource": "default/model-keys/qwen3-06b",
+  "cpu_only_key_denied": true,
+  "kbs_denial_http_status": 401,
+  "cdh_denial_http_status": 500
+}
