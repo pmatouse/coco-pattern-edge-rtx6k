@@ -3,9 +3,9 @@ inference:
   replicas: 1
   image: nvcr.io/nvidia/vllm@sha256:15f380ad9c32f0ac57ac16e4b778c6f733c88b9ffe3a936035d0a59ad17b1aab
   runtimeClassName: kata-cc-nvidia-gpu
-  memoryMiB: "32768"
-  cpus: "1"
-  memory: 32Gi
+  memoryMiB: "65536"
+  cpus: "8"
+  memory: 64Gi
   artifactDigest: ""
   servedModelName: qwen3-0.6b-encrypted
 registry:

@@ -19,7 +19,7 @@ guest memory, and launches vLLM from that local model directory.
 | vLLM image | `nvcr.io/nvidia/vllm:25.09-py3`, pinned by digest in chart values |
 | Runtime | `kata-cc-nvidia-gpu` / AMD SEV-SNP |
 | GPU request | One `nvidia.com/pgpu`, RTX PRO 6000 Blackwell Server Edition |
-| Guest sizing | 1 vCPU, 32 GiB RAM; initial functional configuration |
+| Guest sizing | 8 vCPUs, 64 GiB RAM; accommodates the ~23 GB unpacked vLLM image |
 | Key resource | `default/model-keys/qwen3-06b` |
 | Vault source | `secret/hub/modelKeys`, field `qwen3-06b` |
 | Registry | `image-registry.openshift-image-registry.svc:5000` |
@@ -214,3 +214,5 @@ attestation policy was relaxed.
 - Registry PVC deletion is deliberately excluded from automatic Argo pruning and
   application deletion, to preserve encrypted artifacts. Back it up alongside the
   separately protected key if the exact artifact must survive cluster replacement.
+
+The 32 GiB guest failed unpacking the vLLM image with `No space left on device` in the guest filesystem. The chart therefore allocates 64 GiB; host image caching does not avoid the separate guest image pull/unpack.
