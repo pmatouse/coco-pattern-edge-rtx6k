@@ -13,7 +13,7 @@ global:
     useCSV: false
     syncPolicy: Automatic
     installPlanApproval: Automatic
-    autoApproveManualInstallPlans: true
+    autoApproveManualInstallPlans: false
   # This defines whether or not to use upstream resources for CoCo.
   # Defines whether or not the hub cluster can be used for confidential containers
   coco:
@@ -29,7 +29,7 @@ global:
       defaultVMFlavour: "Standard_DC2as_v5"
       VMFlavours: "Standard_DC2as_v5,Standard_DC4as_v5,Standard_DC8as_v5,Standard_DC16as_v5"
   hardware:
-    profile: intel-tdx  # Options: intel-tdx, amd-snp, intel-tdx-gpu, amd-snp-gpu
+    profile: amd-snp  # CPU CoCo baseline on edge-rtx6k; GPU enablement follows validation.
   cluster:
     # Hosted Control Planes (HCP) mode. When true, MachineConfig resources are skipped
     # (no Machine Config Daemon on HCP workers). The sandboxed-containers operator
@@ -44,12 +44,12 @@ main:
   #   baremetal-hub  — Bare metal hub (Trustee + ACM, mixed TDX/SNP, manages baremetal spokes)
   #   baremetal-spoke — Bare metal spoke (imported into ACM from baremetal-hub)
   #   trusted-hub    — Hub for multi-cluster Azure (Trustee + ACM, manages azure-spoke clusters)
-  clusterGroupName: azure
+  clusterGroupName: baremetal
   git:
     # Connected mode: repoURL is inferred from your local git remote.
     # Disconnected: uncomment and set to the HTTP URL served by git-http-server.py
     # repoURL: http://JUMP_HOST_IP:8080/coco-pattern.git
-    revision: main
+    revision: codex/edge-rtx6k
   patternsOperator:
     # Required for airgap -- set to your mirrored catalog source name
     # source: cs-community-operator-index-v4-22

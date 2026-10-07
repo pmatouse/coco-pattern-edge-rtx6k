@@ -120,7 +120,6 @@ clusterGroup:
   - '/overrides/values-storage-{{ $.Values.global.storageProvider }}.yaml'
   - '/overrides/values-{{ $.Values.global.clusterVersion }}.yaml'
   - '/overrides/values-hw-{{ $.Values.global.hardware.profile }}.yaml'
-  - '/overrides/values-baremetal-airgap.yaml'
 
   extraObjects:
     wait-for-vault-unsealed:
@@ -192,7 +191,7 @@ clusterGroup:
       namespace: trustee-operator-system
       project: trustee
       chart: trustee
-      chartVersion: 0.10.*
+      chartVersion: 0.10.2
       annotations:
         argocd.argoproj.io/sync-wave: "20"
       extraValueFiles:
@@ -204,16 +203,16 @@ clusterGroup:
           value: "true"
         # TDX attestation — enables Intel TDX reference value verification in AS
         - name: kbs.tdx.enabled
-          value: "true"
+          value: "false"
         # GPU attestation — enables NVIDIA CC GPU reference value verification
         - name: kbs.gpu.enabled
-          value: "true"
+          value: "false"
         # Bare metal mode — uses firmware reference values (not peer-pod PCR measurements)
         - name: kbs.baremetal.enabled
           value: "true"
         # Inject mirror-registry CA into KBS trust store (required for airgap image pulls)
         - name: kbs.registryCa.enabled
-          value: "true"
+          value: "false"
         # TDX DCAP collateral — offline attestation without Intel PCS network access.
         # Collateral is collected via `make collect-dcap-collateral` and loaded into Vault.
         # The file path below is where the AS container mounts the collateral from its ESO secret.

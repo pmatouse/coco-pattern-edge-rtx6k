@@ -6,4 +6,6 @@
 kbs:
   snp:
     enabled: true
-    vcekSecrets: []
+    vcekSecrets:
+      - hwid: "631fe8a14126299e"
+        secretName: "snp-vcek-631fe8a14126299e"

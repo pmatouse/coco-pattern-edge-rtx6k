@@ -32,3 +32,7 @@ clusterGroup:
       overrides:
         - name: kbs.snp.enabled
           value: "true"
+        # Helm replaces the topology's overrides list with this profile list.
+        # Retain firmware reference-value loading for AMD bare metal.
+        - name: kbs.baremetal.enabled
+          value: "true"
