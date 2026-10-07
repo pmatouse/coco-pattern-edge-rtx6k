@@ -22,6 +22,8 @@ clusterGroup:
       namespace: gpu-workload
       project: hub
       path: charts/coco-supported/encrypted-inference
+      extraValueFiles:
+        - /overrides/values-encrypted-qwen.yaml
       annotations:
         argocd.argoproj.io/sync-wave: "30"
     internal-registry:

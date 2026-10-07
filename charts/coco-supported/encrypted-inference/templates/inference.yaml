@@ -1,0 +1,193 @@
+{{- if .Values.inference.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: encrypted-inference-scripts
+data:
+  artifact.py: |
+{{ .Files.Get "files/artifact.py" | indent 4 }}
+  guest.py: |
+{{ .Files.Get "files/guest.py" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inference-registry-ca
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: encrypted-inference
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: encrypted-inference-anyuid
+rules:
+  - apiGroups: [security.openshift.io]
+    resources: [securitycontextconstraints]
+    resourceNames: [anyuid]
+    verbs: [use]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: encrypted-inference-anyuid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: encrypted-inference-anyuid
+subjects:
+  - kind: ServiceAccount
+    name: encrypted-inference
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: encrypted-qwen-pull
+rules:
+  - apiGroups: [image.openshift.io]
+    resources: [imagestreams/layers]
+    resourceNames: [encrypted-qwen3-06b]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: encrypted-qwen-pull
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: encrypted-qwen-pull
+subjects:
+  - kind: ServiceAccount
+    name: encrypted-inference
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encrypted-qwen
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: encrypted-qwen
+  template:
+    metadata:
+      labels:
+        app: encrypted-qwen
+      annotations:
+        coco.io/initdata-configmap: initdata
+        io.katacontainers.config.hypervisor.default_memory: {{ .Values.inference.memoryMiB | quote }}
+        io.katacontainers.config.hypervisor.default_vcpus: {{ .Values.inference.cpus | quote }}
+        checksum/scripts: {{ printf "%s%s" (.Files.Get "files/artifact.py") (.Files.Get "files/guest.py") | sha256sum }}
+    spec:
+      serviceAccountName: encrypted-inference
+      runtimeClassName: {{ .Values.inference.runtimeClassName }}
+      initContainers:
+        - name: prepare-private-storage
+          image: {{ .Values.resultsImage | quote }}
+          command: [/bin/sh, -ec, 'chown 1001:0 /private /results /dev/shm; chmod 0700 /private /results; chmod 1777 /dev/shm']
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - {name: private, mountPath: /private}
+            - {name: results, mountPath: /results}
+            - {name: shm, mountPath: /dev/shm}
+      containers:
+        - name: vllm
+          image: {{ .Values.inference.image | quote }}
+          command: [/bin/bash, -ec]
+          args:
+            - 'exec > /results/startup.log 2>&1; exec python3 /scripts/guest.py'
+          securityContext:
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+          env:
+            - {name: PYTHONDONTWRITEBYTECODE, value: "1"}
+            - {name: HOME, value: /private/home}
+            - {name: TMPDIR, value: /private/tmp}
+            - {name: XDG_CACHE_HOME, value: /private/cache}
+            - {name: HF_HOME, value: /private/cache/huggingface}
+            - {name: HF_HUB_OFFLINE, value: "1"}
+            - {name: TRANSFORMERS_OFFLINE, value: "1"}
+            - {name: VLLM_NO_USAGE_STATS, value: "1"}
+            - {name: DO_NOT_TRACK, value: "1"}
+            - {name: OMP_NUM_THREADS, value: "4"}
+            - name: REGISTRY_HOST
+              value: {{ .Values.registry.host | quote }}
+            - name: REGISTRY_REPOSITORY
+              value: {{ .Values.registry.repository | quote }}
+            - {name: REGISTRY_CA, value: /registry-ca/service-ca.crt}
+            - name: ARTIFACT_DIGEST
+              value: {{ required "inference.artifactDigest must pin the encrypted artifact" .Values.inference.artifactDigest | quote }}
+            - name: SERVED_MODEL_NAME
+              value: {{ .Values.inference.servedModelName | quote }}
+          resources:
+            requests:
+              cpu: "8"
+              memory: 64Gi
+            limits:
+              cpu: "8"
+              memory: 64Gi
+              nvidia.com/pgpu: 1
+          ports:
+            - {name: inference, containerPort: 8000}
+          readinessProbe:
+            httpGet: {path: /health, port: 8000}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          volumeMounts:
+            - {name: scripts, mountPath: /scripts, readOnly: true}
+            - {name: registry-ca, mountPath: /registry-ca, readOnly: true}
+            - {name: private, mountPath: /private}
+            - {name: results, mountPath: /results}
+            - {name: shm, mountPath: /dev/shm}
+            - {name: initdata, mountPath: /opt/confidential-containers/initdata, readOnly: true}
+        - name: results
+          image: {{ .Values.resultsImage | quote }}
+          securityContext:
+            runAsUser: 1001
+          ports:
+            - {name: results, containerPort: 8080}
+          volumeMounts:
+            - {name: results, mountPath: /var/www/html, readOnly: true}
+      volumes:
+        - name: scripts
+          configMap: {name: encrypted-inference-scripts}
+        - name: registry-ca
+          configMap: {name: inference-registry-ca}
+        - name: initdata
+          configMap: {name: initdata}
+        - name: private
+          emptyDir: {medium: Memory, sizeLimit: 12Gi}
+        - name: shm
+          emptyDir: {medium: Memory, sizeLimit: 4Gi}
+        - name: results
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encrypted-qwen
+spec:
+  selector: {app: encrypted-qwen}
+  ports:
+    - {name: inference, port: 8000, targetPort: 8000}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encrypted-qwen-status
+spec:
+  publishNotReadyAddresses: true
+  selector: {app: encrypted-qwen}
+  ports:
+    - {name: results, port: 8080, targetPort: 8080}
+{{- end }}
