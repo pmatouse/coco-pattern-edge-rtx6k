@@ -165,6 +165,30 @@ an artifact or a key on another cluster.
    exposes startup diagnostics and hashes, not model files or keys. vLLM request
    logging is disabled. There is no external inference route.
 
+## Local browser chat
+
+With Python 3, `oc`, and cluster credentials configured, run from the repository:
+
+```sh
+export KUBECONFIG=/protected/path/cluster.kubeconfig
+python3 scripts/qwen-chat.py
+```
+
+Open `http://127.0.0.1:8765`. The page supports follow-up messages, Enter to send,
+Shift+Enter for a newline, and New chat. It retains recent turns within the demo's
+small context window and requests up to 384 output tokens. Chat history is kept
+in browser memory, not persisted to disk. Reloading clears it.
+
+The Python server binds only to loopback and starts a temporary authenticated
+`oc proxy`. Requests go through the Kubernetes API service proxy to the existing
+vLLM service. It logs no prompt/response bodies, uses a per-process browser request
+token and Host/Origin checks, and renders model output as text. Ctrl-C stops both
+local processes. This loopback URL cannot be shared with another computer.
+
+Browser validation confirmed a response and a follow-up: Qwen remembered `violet`
+across two messages. The underlying inference service remains in the confidential
+GPU VM; this page is only a client.
+
 ## Inference request
 
 Start an authenticated Kubernetes API proxy bound only to localhost (leave it
