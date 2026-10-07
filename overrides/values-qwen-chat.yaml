@@ -1,4 +1,6 @@
-# VPN demo: no login, private cluster IP; no publicly trusted lab certificate.
-route:
-  host: qwen-chat.10.14.202.14.sslip.io
-  tls: false
+# Direct private-IP access on the Red Hat network/VPN; no login or DNS dependency.
+publicHost: 10.14.202.14:30080
+publicScheme: http
+service:
+  type: NodePort
+  nodePort: 30080

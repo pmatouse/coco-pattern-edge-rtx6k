@@ -46,9 +46,9 @@ spec:
             - name: QWEN_BACKEND
               value: {{ .Values.backend | quote }}
             - name: PUBLIC_HOST
-              value: {{ required "route.host is required" .Values.route.host | quote }}
+              value: {{ required "publicHost is required" .Values.publicHost | quote }}
             - name: PUBLIC_SCHEME
-              value: {{ ternary "https" "http" .Values.route.tls | quote }}
+              value: {{ .Values.publicScheme | quote }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -75,23 +75,12 @@ metadata:
   name: qwen-chat
   namespace: {{ .Release.Namespace }}
 spec:
+  type: {{ .Values.service.type }}
   selector: {app: qwen-chat}
   ports:
-    - {name: http, port: 8080, targetPort: http}
----
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: qwen-chat
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    haproxy.router.openshift.io/timeout: 130s
-spec:
-  host: {{ .Values.route.host | quote }}
-  to: {kind: Service, name: qwen-chat}
-  port: {targetPort: http}
-  {{- if .Values.route.tls }}
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
-  {{- end }}
+    - name: http
+      port: 8080
+      targetPort: http
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}

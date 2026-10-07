@@ -1,5 +1,7 @@
 image: registry.access.redhat.com/ubi9/python-312@sha256:56fad467cb1e41666f0028b7fd71107df0556bcc9ecfc577597858c85618f55c
 backend: http://encrypted-qwen.gpu-workload.svc:8000
-route:
-  host: ""
-  tls: false
+publicHost: ""
+publicScheme: http
+service:
+  type: ClusterIP
+  nodePort: 30080
