@@ -98,6 +98,17 @@ class Registry:
         self.repository = os.environ['REGISTRY_REPOSITORY']
         self.context = ssl.create_default_context(cafile=os.environ['REGISTRY_CA'])
         self.token_path = os.environ.get('REGISTRY_TOKEN', '/var/run/secrets/kubernetes.io/serviceaccount/token')
+        origin = self.origin
+
+        class SameOriginRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, req, fp, code, msg, headers, newurl):
+                parsed = urllib.parse.urlsplit(newurl)
+                if parsed.scheme != 'https' or parsed.netloc != urllib.parse.urlsplit(origin).netloc:
+                    raise ValueError('Refusing to forward registry credentials to another origin')
+                return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+        self.opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=self.context), SameOriginRedirect())
 
     def request(self, path, method='GET', data=None, headers=None):
         url = urllib.parse.urljoin(self.origin, path)
@@ -108,7 +119,7 @@ class Registry:
             'Authorization': 'Bearer ' + token,
             **(headers or {}),
         })
-        return urllib.request.urlopen(request, context=self.context, timeout=180)
+        return self.opener.open(request, timeout=180)
 
     def put_blob(self, path, media_type):
         digest = digest_file(path)
