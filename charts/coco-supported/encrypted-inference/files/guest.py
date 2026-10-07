@@ -65,17 +65,17 @@ def main():
         key = bytes.fromhex(key_text.decode('ascii'))
         del key_text
         stage('TRUSTEE_KEY_FETCH_PASS')
-        # Exercise the actual artifact with wrong key and tampered tag before loading.
+        # Exercise the actual artifact with wrong key and tampered ciphertext before loading.
         sample = next(f for f in entries if f['name'] == 'config.json')
         nonce, tag = bytes.fromhex(sample['nonce']), bytes.fromhex(sample['tag'])
         ciphertext = archive.extractfile(sample['blob']).read()
-        for label, trial_key, trial_tag in (
-            ('WRONG_KEY_REJECTED_PASS', bytes([key[0] ^ 1]) + key[1:], tag),
-            ('TAMPERED_CIPHERTEXT_REJECTED_PASS', key, bytes([tag[0] ^ 1]) + tag[1:]),
+        for label, trial_key, trial_ciphertext in (
+            ('WRONG_KEY_REJECTED_PASS', bytes([key[0] ^ 1]) + key[1:], ciphertext),
+            ('TAMPERED_CIPHERTEXT_REJECTED_PASS', key, bytes([ciphertext[0] ^ 1]) + ciphertext[1:]),
         ):
             try:
-                crypt_stream(io.BytesIO(ciphertext), PRIVATE/'negative.partial', trial_key, nonce,
-                             aad(bundle, sample['name']), trial_tag)
+                crypt_stream(io.BytesIO(trial_ciphertext), PRIVATE/'negative.partial', trial_key, nonce,
+                             aad(bundle, sample['name']), tag)
             except ValueError:
                 if (PRIVATE/'negative.partial').exists():
                     raise ValueError('Failed authentication left plaintext staging output')
