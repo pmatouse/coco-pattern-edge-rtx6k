@@ -21,10 +21,22 @@ spec:
         io.katacontainers.config.hypervisor.default_memory: {{ .Values.defaultMemory | quote }}
         {{- end }}
     spec:
+      serviceAccountName: gpu-validator
+      initContainers:
+        - name: prepare-results
+          image: {{ .Values.resultsImage | quote }}
+          command: ["/bin/sh", "-ec", "chown 0:0 /results; chmod 0775 /results"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: results
+              mountPath: /results
       runtimeClassName: {{ .Values.runtimeClassName }}
       containers:
         - name: gpu-cc-verifier
           image: {{ .Values.image | quote }}
+          securityContext:
+            runAsUser: 1001
           imagePullPolicy: Always
           command: ["/bin/bash"]
           args:
@@ -52,6 +64,8 @@ spec:
             limits:
               nvidia.com/pgpu: 1
         - name: results
+          securityContext:
+            runAsUser: 1001
           image: {{ .Values.resultsImage | quote }}
           ports:
             - containerPort: 8080
