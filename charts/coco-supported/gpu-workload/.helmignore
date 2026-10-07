@@ -1,0 +1,2 @@
+# Documentation is not a runtime test input and must not change the pod checksum.
+files/encrypted-file-test/README.md
