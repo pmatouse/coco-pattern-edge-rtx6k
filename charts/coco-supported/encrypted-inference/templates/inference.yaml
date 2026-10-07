@@ -7,6 +7,8 @@ metadata:
 data:
   artifact.py: |
 {{ .Files.Get "files/artifact.py" | indent 4 }}
+  gpu_security.py: |
+{{ .Files.Get "files/gpu_security.py" | indent 4 }}
   guest.py: |
 {{ .Files.Get "files/guest.py" | indent 4 }}
 ---
@@ -94,7 +96,7 @@ spec:
         coco.io/initdata-configmap: initdata
         io.katacontainers.config.hypervisor.default_memory: {{ .Values.inference.memoryMiB | quote }}
         io.katacontainers.config.hypervisor.default_vcpus: {{ .Values.inference.cpus | quote }}
-        checksum/scripts: {{ printf "%s%s" (.Files.Get "files/artifact.py") (.Files.Get "files/guest.py") | sha256sum }}
+        checksum/scripts: {{ printf "%s%s%s" (.Files.Get "files/artifact.py") (.Files.Get "files/guest.py") (.Files.Get "files/gpu_security.py") | sha256sum }}
     spec:
       serviceAccountName: encrypted-inference
       runtimeClassName: {{ .Values.inference.runtimeClassName }}

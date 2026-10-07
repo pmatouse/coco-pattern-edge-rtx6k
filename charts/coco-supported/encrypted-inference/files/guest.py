@@ -9,6 +9,7 @@ import urllib.request
 from pathlib import Path
 
 from artifact import FORMAT, Registry, aad, crypt_stream
+from gpu_security import require_encrypted_dram
 
 EXPECTED_FILES = {'LICENSE', 'config.json', 'generation_config.json', 'merges.txt',
                   'model.safetensors', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json'}
@@ -28,6 +29,7 @@ def main():
     if filesystem != 'tmpfs':
         raise ValueError('Plaintext/cache volume is not guest tmpfs')
     stage('GUEST_PRIVATE_TMPFS_PASS')
+    gpu_security = require_encrypted_dram()
     for stale in ('staging', 'model', 'home', 'cache', 'tmp'):
         shutil.rmtree(PRIVATE/stale, ignore_errors=True)
     for directory in ('staging', 'home', 'cache', 'tmp'):
@@ -119,9 +121,12 @@ def main():
               'key_resource': bundle['key_resource'], 'plaintext_storage': filesystem,
               'files_sha256': hashes, 'wrong_key_rejected': True, 'tampered_ciphertext_rejected': True,
               'cuda_device': device.name, 'cuda_capability': list(torch.cuda.get_device_capability(0)),
-              'torch': torch.__version__, 'cuda': torch.version.cuda}
+              'torch': torch.__version__, 'cuda': torch.version.cuda,
+              'gpu_dram_encryption': gpu_security['dram_encryption_current'][0],
+              'gpu_uuid': gpu_security['gpu_uuid'][0]}
     (RESULTS/'model-validation.json').write_text(json.dumps(record, indent=2) + '\n')
     stage('CUDA_GPU_PROBE_PASS')
+    subprocess.Popen(['python3', '/scripts/gpu_security.py'])
     stage('VLLM_START')
     os.execvp('vllm', ['vllm', 'serve', str(PRIVATE/'model'), '--served-model-name', os.environ['SERVED_MODEL_NAME'],
                       '--host', '0.0.0.0', '--port', '8000', '--dtype', 'bfloat16',
