@@ -50,7 +50,10 @@ The resource name is supplied by KBS as canonical request metadata
 This is a hardware/runtime attestation gate, not an image identity allowlist.
 The lab's image acceptance policy remains insecureAcceptAnything, and Trustee
 and Vault remain co-located on the cluster. No model weights have yet been
-encrypted with this key and no inference server has been deployed.
+encrypted with this key and no inference server has been deployed. The
+[encrypted input GPU test](encrypted-gpu-test.md) now demonstrates pre-encryption,
+attested retrieval of this key, in-memory decryption and CUDA computation on
+non-AI demo data.
 
 ## Versioned source and GitOps
 

@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-07T13:09:51.151565+00:00",
+  "guest": {
+    "status": "PASS",
+    "format": "edge-encrypted-gpu-v1",
+    "count": 4096,
+    "ciphertext_sha256": "c8b5adb44730eaf3bcc3bc68059315d9745abc0584551f11811e7f2309dd4db3",
+    "output_sha256": "baa4753c66f615b6ee9674b7f3fd291736cc191cbc7305f23db5bb3fa9da8c6d",
+    "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition, GPU-365e7189-b4ff-8aa9-a0d0-3c3a2589c32b, 98.02.8D.00.01, 595.58.03",
+    "negative_tests": {
+      "wrong_key_rejected": true,
+      "tampered_ciphertext_rejected": true
+    },
+    "plaintext_transport": "memory and anonymous pipe; no plaintext file"
+  },
+  "pod": "gpu-encrypted-file-7c986459d6-c4wwk",
+  "runtime": "kata-cc-nvidia-gpu",
+  "gpu_count": 1,
+  "secure_exec_denied": true,
+  "cpu_only_key_denied": true,
+  "kbs_denial_http_status": 401,
+  "cdh_denial_http_status": 500,
+  "limits": [
+    "Lab key and co-located Trustee; no administrator isolation claim",
+    "Permissive image/workload acceptance remains; not production hardening",
+    "Decryption executes on the guest CPU; decrypted input is then processed by CUDA"
+  ],
+  "implementation_commit": "7e9f6ec38d550d96e0590db9e2178b91c437b46f",
+  "local_crypto_checks": {
+    "valid_payload_sizes": [
+      0,
+      1,
+      16,
+      32772
+    ],
+    "authentication_rejection_cases": 12
+  }
+}

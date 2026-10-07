@@ -19,6 +19,7 @@ processors and four RTX PRO 6000 Blackwell Server Edition GPUs, running OpenShif
 | [GPU validation record](VALIDATION-RECORD.md) | One-GPU CUDA and attestation tests; 16 applications at this stage. |
 | [Model-key policy runbook](../model-key-policy.md) | Later implemented CPU-and-GPU requirement for `default/model-keys/edge-model-key`, staging, tests and recovery. |
 | [Model-key validation record](../../tests/model-key-policy/validation-2026-10-07.json) | 68 policy cases and live positive/negative checks; this is a recorded result, not a fresh test on opening the file. |
+| [Encrypted input GPU test](../encrypted-gpu-test.md) | Pre-encrypted arrays decrypted with a Trustee key inside a GPU CVM; CUDA output and denial cases verified. |
 | [Sample application results](SAMPLE-APPLICATIONS.md) | Exec-policy and KBS delivery tests; sealed-secret example remains a literal placeholder. |
 
 The GPU guide stops before the model-key phase. Its statements that mandatory GPU
