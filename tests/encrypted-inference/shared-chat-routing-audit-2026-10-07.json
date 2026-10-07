@@ -1,0 +1,86 @@
+{
+  "checked_at": "2026-10-07T18:52:52.280783+00:00",
+  "chain": {
+    "public_url": "http://10.14.202.14:30080",
+    "chat_pod": "qwen-chat-6fd79bd4b-vvrqc",
+    "chat_uid": "839d51fc-94fe-491b-9e77-cec5a4c1ae48",
+    "chat_endpoints": [
+      {
+        "addresses": [
+          "10.128.0.41"
+        ],
+        "conditions": {
+          "ready": true,
+          "serving": true,
+          "terminating": false
+        },
+        "nodeName": "9c-63-c0-dd-06-52",
+        "targetRef": {
+          "kind": "Pod",
+          "name": "qwen-chat-6fd79bd4b-vvrqc",
+          "namespace": "gpu-workload",
+          "uid": "839d51fc-94fe-491b-9e77-cec5a4c1ae48"
+        }
+      }
+    ],
+    "model_endpoints": [
+      {
+        "addresses": [
+          "10.128.0.110"
+        ],
+        "conditions": {
+          "ready": true,
+          "serving": true,
+          "terminating": false
+        },
+        "nodeName": "9c-63-c0-dd-06-52",
+        "targetRef": {
+          "kind": "Pod",
+          "name": "encrypted-qwen-b74c678b6-74g44",
+          "namespace": "gpu-workload",
+          "uid": "3fabfd1e-5f62-4dc8-9102-dfb16ead821a"
+        }
+      }
+    ],
+    "backend": "http://encrypted-qwen.gpu-workload.svc:8000",
+    "model_pod": "encrypted-qwen-b74c678b6-74g44",
+    "model_uid": "3fabfd1e-5f62-4dc8-9102-dfb16ead821a",
+    "chat_source_sha256": "5d3675b9bc931e0ce9bcff219c61b9cbe7c8b45c847cd1ceb641ff9149143fed"
+  },
+  "runtime": "kata-cc-nvidia-gpu",
+  "runtime_handler": "kata-snp-nvidia-gpu",
+  "vm": {
+    "pid": "1856454",
+    "sandbox": "f97187d64c265849fd443e84ba034c38ee8a403d0ddd0168f107e844bb5fe6fa",
+    "machine": "q35,accel=kvm,kernel_irqchip=split,confidential-guest-support=snp",
+    "objects": [
+      "sev-snp-guest,id=snp,cbitpos=51,reduced-phys-bits=1,kernel-hashes=on,policy=196608,host-data=hGBg2Xp8GMQhs0AnfoLt5fDu0/2MD+ZaPicqviocWsw=",
+      "iommufd,id=iommufdvfio-b52a88958913ec7b2",
+      "memory-backend-ram,id=dimm1,size=65536M"
+    ],
+    "gpu": [
+      "vfio-pci,host=0001:04:00.0,x-pci-vendor-id=0x10de,x-pci-device-id=0x2bb5,bus=rp0,iommufd=iommufdvfio-b52a88958913ec7b2"
+    ]
+  },
+  "request": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly this text and nothing else: CC-AUDIT-6e6289287a4e"
+      }
+    ]
+  },
+  "reply": {
+    "message": "CC-AUDIT-6e6289287a4e",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 38,
+      "total_tokens": 56,
+      "completion_tokens": 18,
+      "prompt_tokens_details": null
+    }
+  },
+  "vllm_success_before": 1.0,
+  "vllm_success_after": 2.0,
+  "note": "Host process mapping plus separate guest/attestation validation; secure guest policy was not relaxed."
+}

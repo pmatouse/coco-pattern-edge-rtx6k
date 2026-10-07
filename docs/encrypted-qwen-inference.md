@@ -344,6 +344,54 @@ These are driver-reported readings for this run, not a physical bus measurement
 or a guarantee of ongoing re-attestation. The guest policy was not relaxed, and
 no GPU encryption mode was changed to obtain these results.
 
+## Shared-endpoint audit — 7 October 2026
+
+After recreating the model VM, the [routing audit](../tests/encrypted-inference/shared-chat-routing-audit-2026-10-07.json)
+traced `http://10.14.202.14:30080/` through the chat Service, frontend pod,
+model Service and EndpointSlice to pod `encrypted-qwen-b74c678b6-74g44`, UID
+`3fabfd1e-5f62-4dc8-9102-dfb16ead821a`. Host CRI metadata matched that UID to
+the running QEMU sandbox. Its actual arguments included:
+
+```text
+-machine q35,accel=kvm,kernel_irqchip=split,confidential-guest-support=snp
+-object sev-snp-guest,id=snp,...,policy=196608,...
+-device vfio-pci,host=0001:04:00.0,...
+```
+
+The audit checked the deployed frontend Python source against this repository,
+sent a freshly generated marker through the shared IP, received the same marker
+from the model, and observed the live vLLM successful-request counter increase
+from 1 to 2. This checks the running request path, beyond just a configured
+RuntimeClass name. It does not independently measure hardware or replace remote
+attestation.
+
+The [fresh confidential inference validation](../tests/encrypted-inference/shared-chat-audit-validation-2026-10-07.json)
+passed on that same pod UID: authenticated decryption from the pinned registry
+artifact into guest tmpfs, expected weights SHA-256, wrong-key and tampered-input
+rejection, CUDA inference, blocked arbitrary exec, and a fresh KBS HTTP 401 policy
+denial for a CPU-only SNP guest requesting the Qwen key. Driver snapshots again
+reported CC ON/Ready and current DRAM encryption Enabled before and after loading;
+vLLM PID 109 reported `fb=24952 MiB` and `ccpm=24952 MiB`.
+
+To repeat both checks (the routing audit additionally requires permission to read
+host CRI/process metadata through the machine-config daemon):
+
+```sh
+python3 scripts/test-encrypted-inference.py --output /tmp/qwen-validation.json
+python3 scripts/audit-qwen-chat.py --output /tmp/qwen-routing.json
+```
+
+The encrypted-array status server had stalled while its containers remained
+running. An unread stdout pipe is a suspected cause: the strict guest policy
+blocks host log streaming while HTTP readiness probes generate access logs.
+The results sidecars now redirect their routine server output to `/dev/null`;
+intentional nonsecret diagnostics remain in the served results files. No guest
+policy was relaxed. After restart the array test passed all 4,096 additions, and
+its status server passed [2,000 HTTP requests with zero failures](../tests/encrypted-inference/results-http-load-2026-10-07.json).
+This is a short load check, not proof of the suspected root cause or long-term
+stability. Qwen, encrypted-array, shared-chat and registry applications were all
+Synced/Healthy at the end of the audit.
+
 ## Boundaries and limitations
 
 - Qwen is a public model used to demonstrate the workflow; this test does not make
