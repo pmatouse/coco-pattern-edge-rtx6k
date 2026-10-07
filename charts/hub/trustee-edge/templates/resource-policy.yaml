@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-policy
+  namespace: trustee-operator-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    kbs.confidentialcontainers.org/migrated-from-v1.1.0: v1.2.0
+data:
+  resource-policy.rego: |
+{{ .Files.Get "files/resource-policy.rego" | indent 4 }}

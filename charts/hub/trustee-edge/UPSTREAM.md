@@ -1,0 +1,1 @@
+Fork of the published Validated Patterns trustee chart 0.10.2, extracted from its recorded chart archive. Only the chart version and resource policy are changed. This private fork is released by Git tag edge-trustee-0.10.3-1 before the deployment references it. Upstream: https://github.com/validatedpatterns/trustee-chart
