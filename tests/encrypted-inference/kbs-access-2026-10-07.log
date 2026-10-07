@@ -1,0 +1,18 @@
+2026-10-07T15:40:52.062781Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 200 477 "-" "attestation-agent-kbs-client/0.1.0" 0.001473
+2026-10-07T15:44:04.436930Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 115 "-" "attestation-agent-kbs-client/0.1.0" 0.000594
+2026-10-07T15:44:04.552516Z ERROR kbs::error: PolicyDeny
+2026-10-07T15:44:04.552533Z DEBUG actix_web::middleware::logger: Error in response: PolicyDeny
+2026-10-07T15:44:04.552543Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 110 "-" "attestation-agent-kbs-client/0.1.0" 0.001185
+2026-10-07T15:44:04.629876Z ERROR kbs::error: PolicyDeny
+2026-10-07T15:44:04.629885Z DEBUG actix_web::middleware::logger: Error in response: PolicyDeny
+2026-10-07T15:44:04.629892Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 110 "-" "attestation-agent-kbs-client/0.1.0" 0.000591
+2026-10-07T15:47:17.355174Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 200 477 "-" "attestation-agent-kbs-client/0.1.0" 0.001705
+2026-10-07T15:48:39.998163Z ERROR kbs::error: PolicyDeny
+2026-10-07T15:48:39.998190Z DEBUG actix_web::middleware::logger: Error in response: PolicyDeny
+2026-10-07T15:48:39.998203Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 110 "-" "attestation-agent-kbs-client/0.1.0" 0.001320
+2026-10-07T15:48:40.111185Z ERROR kbs::error: PolicyDeny
+2026-10-07T15:48:40.111197Z DEBUG actix_web::middleware::logger: Error in response: PolicyDeny
+2026-10-07T15:48:40.111204Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 110 "-" "attestation-agent-kbs-client/0.1.0" 0.000642
+2026-10-07T15:48:40.186481Z ERROR kbs::error: PolicyDeny
+2026-10-07T15:48:40.186493Z DEBUG actix_web::middleware::logger: Error in response: PolicyDeny
+2026-10-07T15:48:40.186500Z  INFO actix_web::middleware::logger: 10.128.0.2 "GET /kbs/v0/resource/default/model-keys/qwen3-06b HTTP/1.1" 401 110 "-" "attestation-agent-kbs-client/0.1.0" 0.000700

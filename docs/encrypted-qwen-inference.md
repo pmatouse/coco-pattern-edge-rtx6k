@@ -237,6 +237,11 @@ pinned artifact digest and weights SHA-256, no model-key Secret/PVC/hostPath mou
 offline model loading, blocked `ExecProcessRequest`, and a fresh KBS `PolicyDeny`
 with HTTP 401 for the same Qwen key requested from a CPU-only SNP guest.
 
+A [second validation after deleting and recreating the Qwen pod](../tests/encrypted-inference/recreated-pod-2026-10-07.json)
+passed with a different pod UID, the same pinned artifact, fresh key retrieval,
+model authentication, GPU inference and policy denials. Both GPU deployments and
+the internal registry ended `Synced` / `Healthy` in Argo CD.
+
 The old encrypted-array pod became unresponsive during this work, without a new
 host PCIe error in the inspected kernel log. Recreating it restored all checks,
 including `GPU_VECTOR_ADD_MATCH_PASS count=4096`. Its readiness loss is recorded
