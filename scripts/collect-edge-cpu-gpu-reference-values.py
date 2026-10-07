@@ -21,6 +21,7 @@ class EdgeExtractor(BaremetalExtractor):
             "agent.log=debug ", "agent.log=debug agent.launch_process_timeout=6 "
         )
         if is_gpu:
+            template = template.replace("agent.launch_process_timeout=6", "agent.launch_process_timeout=15")
             template = template.replace(
                 "cgroup_no_v1=all systemd.unified_cgroup_hierarchy=1",
                 "cgroup_no_v1=all pci=realloc pci=nocrs pci=assign-busses nvrc.smi.srs=1",
