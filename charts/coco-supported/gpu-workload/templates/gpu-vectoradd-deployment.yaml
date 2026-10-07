@@ -31,6 +31,8 @@ spec:
             - -c
             - |
               set -euo pipefail
+              rm -f /results/passed
+              exec > /results/status.txt 2>&1
               echo GPU_TEST_START
               timeout 120 nvidia-smi --query-gpu=name,uuid,vbios_version,driver_version --format=csv
               timeout 120 nvidia-smi -q | sed -n '/Confidential/,+16p'
@@ -38,15 +40,33 @@ spec:
               echo GPU_VECTORADD_PASS
               curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8006/cdh/resource/default/kbsres1/key3 | sha256sum
               echo GPU_SECRET_FETCH_PASS
+              touch /results/passed
               sleep 36000
           volumeMounts:
+            - name: results
+              mountPath: /results
             - name: initdata
               mountPath: /opt/confidential-containers/initdata
               readOnly: true
           resources:
             limits:
               nvidia.com/pgpu: 1
+        - name: results
+          image: {{ .Values.resultsImage | quote }}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /passed
+              port: 8080
+            periodSeconds: 5
+          volumeMounts:
+            - name: results
+              mountPath: /var/www/html
+              readOnly: true
       volumes:
+        - name: results
+          emptyDir: {}
         - name: initdata
           configMap:
             name: initdata
