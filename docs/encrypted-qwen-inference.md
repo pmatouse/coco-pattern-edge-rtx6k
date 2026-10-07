@@ -165,6 +165,38 @@ an artifact or a key on another cluster.
    exposes startup diagnostics and hashes, not model files or keys. vLLM request
    logging is disabled. There is no external inference route.
 
+## Shared browser chat on the VPN
+
+Open **http://qwen-chat.10.14.202.14.sslip.io/** from a computer with network access
+to the lab's private `10.14.202.14` address (Red Hat network/VPN).
+
+This demo intentionally has **no login**, as requested. Anyone who can reach the
+Route can send prompts. The `sslip.io` hostname resolves to the private IP because
+the lab's usual application wildcard DNS did not resolve during deployment. It
+uses **HTTP**, not HTTPS: there is no matching trusted certificate for this name.
+No public tunnel was created. DNS-rebinding protection on some corporate resolvers
+may block this hostname; the recipient's network must resolve it to `10.14.202.14`.
+
+The `qwen-chat` Helm chart deploys a small ordinary Python web pod, Service and
+OpenShift Route. The frontend forwards requests to
+`http://encrypted-qwen.gpu-workload.svc:8000/v1/chat/completions`; vLLM, model
+weights and GPU processing remain in the existing confidential VM. Prompts and
+responses pass through the web pod and router in plaintext. The frontend does not
+receive the model key or weights, has no service-account token mounted, and does
+not persist chat history. This is a shared lab UI, not an end-to-end confidential
+prompt transport.
+
+GitOps application: `qwen-chat`; settings:
+`overrides/values-qwen-chat.yaml`; implementation:
+`charts/coco-supported/qwen-chat/files/`. The local launcher below reuses that same
+implementation. For a future trusted HTTPS hostname, change `route.host` and set
+`route.tls: true` after configuring its DNS/certificate.
+
+Validation: the shared page opened without credentials and returned `2 + 2 = 4.`
+through the Route. Browser follow-up context was also checked locally. Invalid
+browser-session tokens and foreign-Origin POSTs returned HTTP 403; those checks
+prevent cross-site requests and are not user authentication.
+
 ## Local browser chat
 
 With Python 3, `oc`, and cluster credentials configured, run from the repository:
