@@ -1,0 +1,30 @@
+{
+  "recorded_date": "2026-10-07",
+  "cluster": "dell-rtx6kbse-3",
+  "node": "9c-63-c0-dd-06-52",
+  "openshift": "4.22.15",
+  "trustee": "1.2.0",
+  "chart_version": "0.10.3-edge.1",
+  "chart_release": "edge-trustee-0.10.3-1",
+  "deployment_commit": "3a7e85e10a5ee76803ea60537ad4e9b93693063b",
+  "policy_cases": 68,
+  "opa_version": "1.21.1",
+  "live_tests": {
+    "gpu_model_key": "GPU guest retrieved matching model key after CUDA; values withheld",
+    "cpu_only_denied": "CPU-only SNP guest denied: KBS PolicyDeny/HTTP 401 (CDH maps to HTTP 500)",
+    "forged_token_denied": "Unsigned token claiming CPU/GPU attestation rejected (HTTP 401)",
+    "invalid_gpu_evidence_denied": "Fresh NVIDIA handshake accepted; invalid Blackwell report/certificate rejected (HTTP 401)",
+    "failed_session_denied": "Failed GPU-attestation session denied model key (HTTP 401)"
+  },
+  "regression_checks": [
+    "16 Argo applications Synced/Healthy",
+    "Cluster operators Available/not Degraded",
+    "CPU debug exec allowed; secure CPU/GPU exec denied",
+    "Existing CPU demo secret retrieval unchanged"
+  ],
+  "limits": [
+    "No physical GPU hardware or firmware was altered for the invalid-evidence test.",
+    "No model weights/inference server deployed.",
+    "Clean-cluster rebuild not destructively rerun."
+  ]
+}
