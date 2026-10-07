@@ -1,6 +1,7 @@
 image: "quay.io/openshift_sandboxed_containers/gpu-verifier@sha256:dcc55b6c51a85cda62322f7f07f5aa8d42632481254d8bf47e2e24705b245797"
 
 runtimeClassName: "kata-cc-nvidia-gpu"
+vectorAddReplicas: 1
 
 defaultMemory: "32768"
 

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: gpu-vectoradd
 spec:
-  replicas: 1
+  replicas: {{ .Values.vectorAddReplicas }}
   strategy:
     type: Recreate
   selector:
