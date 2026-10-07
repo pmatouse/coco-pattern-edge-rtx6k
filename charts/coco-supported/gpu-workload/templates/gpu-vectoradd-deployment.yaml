@@ -31,11 +31,12 @@ spec:
             - -c
             - |
               set -euo pipefail
-              nvidia-smi --query-gpu=name,uuid,vbios_version,driver_version --format=csv
-              nvidia-smi -q | sed -n '/Confidential/,+16p'
-              /opt/cuda-samples/Samples/0_Introduction/vectorAdd/build/vectorAdd
+              echo GPU_TEST_START
+              timeout 120 nvidia-smi --query-gpu=name,uuid,vbios_version,driver_version --format=csv
+              timeout 120 nvidia-smi -q | sed -n '/Confidential/,+16p'
+              timeout 120 /opt/cuda-samples/Samples/0_Introduction/vectorAdd/build/vectorAdd
               echo GPU_VECTORADD_PASS
-              curl --fail --silent --show-error http://127.0.0.1:8006/cdh/resource/default/kbsres1/key3 | sha256sum
+              curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8006/cdh/resource/default/kbsres1/key3 | sha256sum
               echo GPU_SECRET_FETCH_PASS
               sleep 36000
           volumeMounts:
