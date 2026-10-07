@@ -107,6 +107,20 @@ an artifact or a key on another cluster.
      -o go-template='{{range $k,$v := .data}}{{$k}}{{"\n"}}{{end}}'
    ```
 
+   Trustee 1.2's `secret-converter` init container copies resource Secret entries
+   into KBS's memory-backed repository at pod startup. After adding a new key,
+   recreate the KBS pod **after** ESO has synchronized the Secret:
+
+   ```sh
+   oc delete pod -n trustee-operator-system -l app=kbs
+   oc wait pod -n trustee-operator-system -l app=kbs --for=condition=Ready --timeout=180s
+   ```
+
+   This briefly interrupts KBS service. A Deployment `rollout restart` is not
+   reliable here: the Trustee operator removes the restart annotation. Merely
+   seeing the new field in the Kubernetes Secret does not establish that the
+   running KBS repository contains it.
+
 3. Render and start the one-time producer job. Run this from the repository root:
 
    ```sh
