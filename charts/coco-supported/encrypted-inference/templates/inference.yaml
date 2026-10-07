@@ -2,6 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-inference-scripts
 data:
   artifact.py: |
@@ -12,6 +13,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: inference-registry-ca
   annotations:
     service.beta.openshift.io/inject-cabundle: "true"
@@ -19,11 +21,13 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-inference
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-inference-anyuid
 rules:
   - apiGroups: [security.openshift.io]
@@ -34,6 +38,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-inference-anyuid
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -47,6 +52,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-qwen-pull
 rules:
   - apiGroups: [image.openshift.io]
@@ -57,6 +63,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-qwen-pull
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -70,6 +77,7 @@ subjects:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-qwen
 spec:
   replicas: 1
@@ -175,6 +183,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-qwen
 spec:
   selector: {app: encrypted-qwen}
@@ -184,6 +193,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: encrypted-qwen-status
 spec:
   publishNotReadyAddresses: true
