@@ -139,11 +139,11 @@ spec:
               value: {{ .Values.inference.servedModelName | quote }}
           resources:
             requests:
-              cpu: "8"
-              memory: 64Gi
+              cpu: {{ .Values.inference.cpus | quote }}
+              memory: {{ .Values.inference.memory | quote }}
             limits:
-              cpu: "8"
-              memory: 64Gi
+              cpu: {{ .Values.inference.cpus | quote }}
+              memory: {{ .Values.inference.memory | quote }}
               nvidia.com/pgpu: 1
           ports:
             - {name: inference, containerPort: 8000}
