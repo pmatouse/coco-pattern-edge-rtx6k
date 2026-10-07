@@ -1,0 +1,116 @@
+{{- if .Values.encryptedFileTest.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: encrypted-gpu-test
+data:
+{{ (.Files.Glob "files/encrypted-file-test/*").AsConfig | indent 2 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpu-encrypted-file
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: gpu-encrypted-file
+  template:
+    metadata:
+      labels:
+        app: gpu-encrypted-file
+      annotations:
+        coco.io/initdata-configmap: initdata
+        io.katacontainers.config.hypervisor.default_memory: {{ .Values.defaultMemory | quote }}
+        checksum/test-input: {{ (.Files.Glob "files/encrypted-file-test/*").AsConfig | sha256sum }}
+    spec:
+      serviceAccountName: gpu-validator
+      runtimeClassName: {{ .Values.runtimeClassName }}
+      initContainers:
+        - name: prepare-results
+          image: {{ .Values.resultsImage | quote }}
+          command: ["/bin/sh", "-ec", "chown 1001:0 /results /work; chmod 0700 /results /work"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: results
+              mountPath: /results
+            - name: work
+              mountPath: /work
+      containers:
+        - name: encrypted-gpu-test
+          image: {{ .Values.image | quote }}
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: TMPDIR
+              value: /work
+          command: ["/bin/bash", "-ec"]
+          args:
+            - |
+              set -euo pipefail
+              rm -f /results/passed
+              exec > /results/status.txt 2>&1
+              echo ENCRYPTED_GPU_BUILD_START
+              timeout 180 /usr/local/cuda-13.1/bin/nvcc -arch=native -O2 /test/vector_add.cu -o /work/encrypted-vector-add
+              echo ENCRYPTED_GPU_BUILD_PASS
+              timeout 240 python3 /test/guest.py
+              sleep infinity
+          resources:
+            limits:
+              nvidia.com/pgpu: 1
+          volumeMounts:
+            - name: test
+              mountPath: /test
+              readOnly: true
+            - name: work
+              mountPath: /work
+            - name: results
+              mountPath: /results
+            - name: initdata
+              mountPath: /opt/confidential-containers/initdata
+              readOnly: true
+        - name: results
+          image: {{ .Values.resultsImage | quote }}
+          securityContext:
+            runAsUser: 1001
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /passed
+              port: 8080
+            periodSeconds: 5
+          volumeMounts:
+            - name: results
+              mountPath: /var/www/html
+              readOnly: true
+      volumes:
+        - name: test
+          configMap:
+            name: encrypted-gpu-test
+        - name: results
+          emptyDir: {}
+        - name: work
+          emptyDir: {}
+        - name: initdata
+          configMap:
+            name: initdata
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gpu-encrypted-file
+spec:
+  publishNotReadyAddresses: true
+  selector:
+    app: gpu-encrypted-file
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+{{- end }}

@@ -54,6 +54,9 @@ clusterGroup:
         - name: iommu.enabled
           value: "false"
     gpu-workload:
+      overrides:
+        - name: encryptedFileTest.enabled
+          value: "true"
       name: gpu-workload
       namespace: gpu-workload
       project: workloads

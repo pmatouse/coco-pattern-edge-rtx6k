@@ -9,3 +9,7 @@ global:
 
 # Serve only nonsecret validation results; secure policy blocks host log streaming.
 resultsImage: registry.redhat.io/ubi9/httpd-24@sha256:68a91ff691092f455fea682330c499588747231c16516cd4f35aff821e6847f2
+
+# Optional pre-encrypted input and confidential GPU computation demo.
+encryptedFileTest:
+  enabled: false
