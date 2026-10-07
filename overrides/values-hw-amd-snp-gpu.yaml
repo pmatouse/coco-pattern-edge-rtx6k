@@ -27,7 +27,9 @@ clusterGroup:
       chart: null
       path: charts/hub/trustee-edge
       repoURL: git@github.com:pmatouse/coco-pattern-edge-rtx6k.git
-      chartVersion: edge-trustee-0.10.3-1
+      # Local copy matches released tag edge-trustee-0.10.3-1.
+      # Argo cannot use two revisions of the same repo in a multisource app.
+      chartVersion: null
       # Helm replaces arrays; retain SNP and bare-metal reference loading.
       overrides:
         - name: kbs.snp.enabled
