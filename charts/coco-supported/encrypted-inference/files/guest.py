@@ -102,6 +102,7 @@ def main():
                                  capture_output=True, text=True, timeout=30)
     print('GPU_DRIVER_QUERY:', diagnostics.returncode, diagnostics.stdout.strip(), diagnostics.stderr.strip(), flush=True)
     import ctypes
+    print('CUDA_DRIVER_FILES:', [str(p) for base in ('/usr/lib64', '/usr/local/nvidia/lib64', '/usr/lib/x86_64-linux-gnu') for p in Path(base).glob('libcuda.so*')], flush=True)
     driver = ctypes.CDLL('libcuda.so.1')
     result = driver.cuInit(0)
     print('CUDA_DRIVER_INIT:', result, flush=True)
