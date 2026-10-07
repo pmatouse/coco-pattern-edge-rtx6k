@@ -1,0 +1,5 @@
+apiVersion: v2
+name: qwen-chat
+description: Browser chat client for encrypted Qwen inference.
+type: application
+version: 0.1.0

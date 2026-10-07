@@ -17,6 +17,15 @@ clusterGroup:
         argocd.argoproj.io/sync-wave: "25"
 
   applications:
+    qwen-chat:
+      name: qwen-chat
+      namespace: gpu-workload
+      project: hub
+      path: charts/coco-supported/qwen-chat
+      extraValueFiles:
+        - /overrides/values-qwen-chat.yaml
+      annotations:
+        argocd.argoproj.io/sync-wave: "35"
     encrypted-inference:
       name: encrypted-inference
       namespace: gpu-workload

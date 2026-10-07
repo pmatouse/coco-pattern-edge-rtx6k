@@ -1,0 +1,4 @@
+# VPN demo: no login, private cluster IP; no publicly trusted lab certificate.
+route:
+  host: qwen-chat.10.14.202.14.sslip.io
+  tls: false
