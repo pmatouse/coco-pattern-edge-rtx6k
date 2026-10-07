@@ -52,6 +52,9 @@ spec:
               echo GPU_VECTORADD_PASS
               curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8006/cdh/resource/default/kbsres1/key3 | sha256sum
               echo GPU_SECRET_FETCH_PASS
+              echo GPU_MODEL_KEY_BEGIN
+              curl --fail --silent --show-error --max-time 120 http://127.0.0.1:8006/cdh/resource/default/model-keys/edge-model-key | sha256sum
+              echo GPU_MODEL_KEY_PASS
               touch /results/passed
               sleep 36000
           volumeMounts:

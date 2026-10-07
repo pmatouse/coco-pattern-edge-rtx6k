@@ -30,6 +30,10 @@ clusterGroup:
       # Local copy matches released tag edge-trustee-0.10.3-1.
       # Argo cannot use two revisions of the same repo in a multisource app.
       chartVersion: null
+      extraValueFiles:
+        - /overrides/values-trustee.yaml
+        - /overrides/values-snp-vcek.yaml
+        - /overrides/values-trustee-gpu-model-keys.yaml
       # Helm replaces arrays; retain SNP and bare-metal reference loading.
       overrides:
         - name: kbs.snp.enabled

@@ -1,0 +1,9 @@
+# GPU model keys are exposed only with the strict resource-policy chart.
+kbs:
+  secretResources:
+    - name: kbsres1
+      key: secret/data/hub/kbsres1
+    - name: passphrase
+      key: secret/data/hub/passphrase
+    - name: model-keys
+      key: secret/data/hub/modelKeys
