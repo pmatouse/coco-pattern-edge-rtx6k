@@ -1,13 +1,54 @@
-# Hardware profile: AMD SEV-SNP + NVIDIA GPU
-# Disables Intel device plugins and Intel DCAP (PCCS/QGS).
-# GPU operator and NVIDIA GPU applications remain enabled.
-# AMD SEV-SNP does not require Intel-specific attestation infrastructure.
-
+# AMD SEV-SNP + NVIDIA GPU passthrough on edge-rtx6k.
+# OSC owns the runtime and guest driver. Keep the existing CPU runtime default.
 clusterGroup:
   subscriptions:
     intel-device-plugins:
       disabled: true
+    intel-tdx-dcap:
+      disabled: true
+    gpu-operator:
+      name: gpu-operator-certified
+      namespace: nvidia-gpu-operator
+      source: certified-operators
+      channel: v26.3
+      installPlanApproval: Manual
+      csv: gpu-operator-certified.v26.3.0
+      annotations:
+        argocd.argoproj.io/sync-wave: "25"
 
   applications:
     intel-dcap:
       disabled: true
+    baremetal:
+      overrides:
+        - name: tdx.enabled
+          value: "false"
+    trustee:
+      # Helm replaces arrays; retain SNP and bare-metal reference loading.
+      overrides:
+        - name: kbs.snp.enabled
+          value: "true"
+        - name: kbs.baremetal.enabled
+          value: "true"
+        - name: kbs.gpu.enabled
+          value: "true"
+    nvidia-gpu:
+      name: nvidia-gpu
+      namespace: nvidia-gpu-operator
+      project: hub
+      path: charts/all/nvidia-gpu
+      annotations:
+        argocd.argoproj.io/sync-wave: "25"
+      overrides:
+        # IOMMU and ACS are already active; avoid an unnecessary SNO reboot.
+        - name: iommu.enabled
+          value: "false"
+    gpu-workload:
+      name: gpu-workload
+      namespace: gpu-workload
+      project: workloads
+      path: charts/coco-supported/gpu-workload
+      # Enable only after GPU resources and trusted launch measurements are ready.
+      disabled: true
+      annotations:
+        argocd.argoproj.io/sync-wave: "30"

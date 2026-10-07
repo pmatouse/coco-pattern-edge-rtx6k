@@ -30,6 +30,7 @@ spec:
           args:
             - -c
             - |
+              set -euo pipefail
               /opt/cuda-samples/Samples/0_Introduction/vectorAdd/build/vectorAdd
               sleep 36000
           volumeMounts:
