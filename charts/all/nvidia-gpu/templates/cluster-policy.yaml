@@ -9,6 +9,9 @@ spec:
   ccManager:
     defaultMode: {{ .Values.ccManager.defaultMode | quote }}
     enabled: {{ .Values.ccManager.enabled }}
+    env:
+      - name: OPERATOR_NAMESPACE
+        value: {{ .Release.Namespace | quote }}
   cdi:
     default: false
     enabled: true
