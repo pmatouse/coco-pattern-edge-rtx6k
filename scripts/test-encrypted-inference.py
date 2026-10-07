@@ -8,6 +8,7 @@ import re
 import subprocess
 import select
 import urllib.request
+import xml.etree.ElementTree as ET
 
 OC = ['oc', '--request-timeout=90s']
 
@@ -43,6 +44,29 @@ def main():
     report = json.loads(run(['get', '--raw', base + 'encrypted-qwen-status:8080/proxy/model-validation.json']).stdout)
     assert report['artifact_digest'] == env['ARTIFACT_DIGEST']
     assert report['plaintext_storage'] == 'tmpfs'
+    assert report['gpu_dram_encryption'] == 'Enabled'
+    security_before = json.loads(run(['get', '--raw', base + 'encrypted-qwen-status:8080/proxy/gpu-security-before-model.json']).stdout)
+    security_loaded = json.loads(run(['get', '--raw', base + 'encrypted-qwen-status:8080/proxy/gpu-security-model-loaded.json']).stdout)
+    for evidence in (security_before, security_loaded):
+        assert evidence['dram_encryption_current'] == ['Enabled']
+        assert evidence['gpu_uuid'] == [report['gpu_uuid']]
+    for evidence in (security_before, security_loaded):
+        cc = evidence['confidential_compute']
+        assert cc['returncode'] == 0
+        assert re.search(r'CC State\s*:\s*ON\b', cc['stdout'])
+        assert re.search(r'CC GPUs Ready State\s*:\s*Ready\b', cc['stdout'])
+    root = ET.fromstring(security_loaded['xml']['stdout'])
+    protected_used_mib = int(root.findtext('.//gpu/cc_protected_memory_usage/used').split()[0])
+    assert protected_used_mib > 0
+    engine_pids = {p.findtext('pid') for p in root.findall('.//process_info')
+                   if 'VLLM' in (p.findtext('process_name') or '')}
+    rows = [line.split() for line in security_loaded['process_memory']['stdout'].splitlines()
+            if line.strip() and not line.startswith('#')]
+    engine_rows = [row for row in rows if len(row) >= 6 and row[1] in engine_pids]
+    assert engine_rows, 'No vLLM process protected-memory evidence'
+    for row in engine_rows:
+        assert int(row[3]) > 0 and int(row[3]) == int(row[4]), 'vLLM FB and CC protected memory differ'
+    print('PASS: GPU DRAM encryption Enabled; CC ON/Ready; vLLM allocation entirely in CC protected memory')
     assert report['wrong_key_rejected'] and report['tampered_ciphertext_rejected']
     assert report['files_sha256']['model.safetensors'] == 'f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b'
     request = {'model': env['SERVED_MODEL_NAME'], 'messages': [
@@ -90,6 +114,7 @@ def main():
               'pod': pod['metadata']['name'], 'pod_uid': pod['metadata']['uid'],
               'runtime': pod['spec']['runtimeClassName'], 'image': container['image'],
               'model_validation': report, 'request': request, 'completion': completion,
+              'gpu_security_before_model': security_before, 'gpu_security_model_loaded': security_loaded,
               'exec_denied': True, 'cpu_only_key_denied': True, 'kbs_denial_http_status': 401,
               'cdh_denial_http_status': int(status)}
     args.output.parent.mkdir(parents=True, exist_ok=True)

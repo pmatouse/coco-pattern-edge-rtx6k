@@ -247,6 +247,51 @@ host PCIe error in the inspected kernel log. Recreating it restored all checks,
 including `GPU_VECTOR_ADD_MATCH_PASS count=4096`. Its readiness loss is recorded
 without claiming a diagnosed root cause.
 
+## Explicit GPU memory protection check — 7 October 2026
+
+The later [GPU-memory validation record](../tests/encrypted-inference/gpu-memory-validation-2026-10-07.json)
+adds direct guest-driver evidence before key retrieval and after vLLM becomes
+healthy. It was collected inside the same confidential VM as Qwen on
+`GPU-4a02e916-3279-39f2-f461-367a5f69356f`.
+
+```text
+CC State                   : ON
+CC GPUs Ready State        : Ready
+DRAM Encryption Mode
+    Current                : Enabled
+    Pending                : Enabled
+
+# gpu  pid  type     fb   ccpm  command
+    0  109     C  24952  24952  VLLM::EngineCor
+```
+
+The XML reports `cc_protected_memory_usage/used` as `25108 MiB` after loading,
+versus `0 MiB` before loading. The vLLM engine itself reports `24952 MiB` in both
+framebuffer (`fb`) and confidential-compute protected memory (`ccpm`). This is the
+engine's allocation, including weights and KV cache, not a 24 GiB model size.
+Current DRAM encryption is `Enabled` in both snapshots. NVIDIA documents the
+[DRAM encryption field and protected-memory counters](https://docs.nvidia.com/deploy/nvidia-smi/index.html).
+
+The startup helper `files/gpu_security.py` now stops **before retrieving the model
+key** unless exactly one GPU reports current DRAM encryption `Enabled`. A pending
+`Enabled` value alone is insufficient. Missing/unsupported/disabled readings fail
+closed. Unit tests cover disabled, unavailable, pending-only and failed-query
+cases. This is an application startup check; it does not add a new DRAM claim to
+Trustee's attestation policy or bind that policy to this application identity.
+
+A bounded read-only monitor captures `nvidia-smi -q -x`, `nvidia-smi conf-compute
+-q`, and `nvidia-smi pmon -s m -c 1` after the health endpoint becomes available.
+The live validator requires CC `ON`/`Ready`, DRAM encryption `Enabled` before and
+after loading, and matching positive vLLM framebuffer/CC-protected-memory usage.
+It then repeats inference, secure exec denial and CPU-only key denial.
+
+Raw evidence: [before model loading](../tests/encrypted-inference/gpu-security-before-model-2026-10-07.json),
+[after model loading](../tests/encrypted-inference/gpu-security-model-loaded-2026-10-07.json),
+[startup log](../tests/encrypted-inference/gpu-memory-startup-2026-10-07.log).
+These are driver-reported readings for this run, not a physical bus measurement
+or a guarantee of ongoing re-attestation. The guest policy was not relaxed, and
+no GPU encryption mode was changed to obtain these results.
+
 ## Boundaries and limitations
 
 - Qwen is a public model used to demonstrate the workflow; this test does not make
