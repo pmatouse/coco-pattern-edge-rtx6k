@@ -355,6 +355,32 @@ Completion means the existing CSI driver remains usable without a custom replace
 
 ### Path B transparent CoCo storage integration
 
+In the normal Kubernetes Kata deployment model, one pod uses one VM, and its application containers share the guest kernel. The VM also has a guest system environment outside those containers. The Kata agent runs there as a system process and manages container creation and lifecycle; it is not a sidecar declared in the pod's `containers` list. [Kata architecture](https://github.com/kata-containers/kata-containers/blob/main/docs/design/architecture/README.md)
+
+The intended Path B layout is:
+
+```text
+One confidential VM for one Kubernetes pod
+├── Guest kernel
+├── Guest system environment
+│   ├── Kata agent and trusted storage service
+│   │   Privileged device and mount operations, constrained by policy
+│   └── CDH and attestation components
+│       Authorized key retrieval inside the VM
+└── Application container
+    └── vLLM
+        Read-only /models; no raw storage device or device-mapper access
+        No storage-related CAP_SYS_ADMIN or privileged container setting
+```
+
+This path extends guest infrastructure rather than adding a privileged application sidecar. The host attaches the encrypted device; the guest agent validates the authorized volume request; guest storage code obtains the secret through CDH and opens the verified filesystem; then the agent mounts it into the application container's mount namespace before starting the application. The application can read an existing mount without permission to create or change mounts itself.
+
+The storage-related target is `privileged: false`, no `CAP_SYS_ADMIN`, and no ability for the application to regain setup privileges. Validate GPU device access separately; these are requirements for the proposed storage integration, not a claim that a complete GPU workload manifest has passed testing. Restrict access to agent/storage control interfaces and raw devices so an application cannot bypass these limits indirectly.
+
+Privileges still exist in the guest agent/storage service. That component is part of the attested trusted computing base and accepts only policy-authorized operations. The service and vLLM share a kernel; namespaces, capabilities and policy provide separation within the VM, not another hardware confidentiality boundary. The LUKS/CDH/verity workflow and its enforcement still require development and validation.
+
+A privileged sidecar would be a different design and would retain the concern about granting privileges to a pod container, along with mount-propagation complexity. Path A can also run vLLM without storage privileges after a correctly implemented bootstrap drops them. Path B's advantage is that application containers need not receive those privileges at any stage, and the platform consistently owns setup and cleanup; it is not automatically more secure than a correctly isolated Path A.
+
 ```text
 Populator → populated encrypted volume → CSI and Kata coordination
          → guest agent and CDH unlock/verify/mount → application sees /models
