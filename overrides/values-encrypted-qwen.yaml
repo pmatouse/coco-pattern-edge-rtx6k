@@ -1,5 +1,6 @@
 # Environment-specific artifact: regenerate after provisioning a fresh model key.
 inference:
   enabled: true
+  servingMode: kserve
   replicas: 1
   artifactDigest: sha256:90ba21885726b44dc38a05380addb0a536ed5c0e894700801491b30a23089f1c

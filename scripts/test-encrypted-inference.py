@@ -27,15 +27,17 @@ def get(*args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--model-selector', default='app=encrypted-qwen')
+    parser.add_argument('--model-container', default='vllm')
     args = parser.parse_args()
     ns = 'gpu-workload'
-    pods = get('pods', '-n', ns, '-l', 'app=encrypted-qwen')['items']
+    pods = get('pods', '-n', ns, '-l', args.model_selector)['items']
     pods = [p for p in pods if not p['metadata'].get('deletionTimestamp')]
     assert len(pods) == 1
     pod = pods[0]
     assert pod['spec']['runtimeClassName'] == 'kata-cc-nvidia-gpu'
     assert any(c['type'] == 'Ready' and c['status'] == 'True' for c in pod['status']['conditions'])
-    container = next(c for c in pod['spec']['containers'] if c['name'] == 'vllm')
+    container = next(c for c in pod['spec']['containers'] if c['name'] == args.model_container)
     assert container['resources']['limits']['nvidia.com/pgpu'] == '1'
     assert not any('secret' in v or 'hostPath' in v or 'persistentVolumeClaim' in v for v in pod['spec']['volumes'])
     env = {e['name']: e.get('value') for e in container['env']}
@@ -93,7 +95,7 @@ def main():
     answer = completion['choices'][0]['message']['content'].strip()
     assert re.search(r'2\s*\+\s*2\s*=\s*4\b', answer), 'Unexpected calculation answer: ' + repr(answer)
     print('PASS: encrypted registry weights decrypted in guest; Qwen CUDA inference answered: ' + answer)
-    denied = run(['exec', '-n', ns, pod['metadata']['name'], '-c', 'vllm', '--', '/bin/true'], check=False)
+    denied = run(['exec', '-n', ns, pod['metadata']['name'], '-c', args.model_container, '--', '/bin/true'], check=False)
     assert denied.returncode and b'ExecProcessRequest is blocked by policy' in denied.stderr
     print('PASS: arbitrary exec remains blocked')
     cpu = get('deployment', 'insecure-policy', '-n', 'hello-openshift')

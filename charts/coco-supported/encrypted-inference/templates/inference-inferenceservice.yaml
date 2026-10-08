@@ -1,0 +1,22 @@
+{{- if and .Values.inference.enabled (eq .Values.inference.servingMode "kserve") }}
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: encrypted-qwen
+  annotations:
+    serving.kserve.io/deploymentMode: Standard
+    serving.kserve.io/autoscalerClass: "none"
+spec:
+  predictor:
+    minReplicas: {{ .Values.inference.replicas | int }}
+    maxReplicas: {{ .Values.inference.replicas | int }}
+    deploymentStrategy:
+      type: Recreate
+    annotations:
+      coco.io/initdata-configmap: initdata
+      io.katacontainers.config.hypervisor.default_memory: {{ .Values.inference.memoryMiB | quote }}
+      io.katacontainers.config.hypervisor.default_vcpus: {{ .Values.inference.cpus | quote }}
+      checksum/scripts: {{ printf "%s%s%s" (.Files.Get "files/artifact.py") (.Files.Get "files/guest.py") (.Files.Get "files/gpu_security.py") | sha256sum }}
+{{ include "encrypted-inference.podSpec" (dict "Values" .Values "Files" .Files "containerName" "kserve-container") | indent 4 }}
+{{- end }}

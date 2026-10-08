@@ -7,7 +7,8 @@ This example extends the [encrypted GPU input test](encrypted-gpu-test.md) to a
 real language model. The OpenShift integrated registry stores encrypted Qwen
 weights. A confidential GPU VM fetches the ciphertext, retrieves a dedicated key
 through CDH after CPU and GPU attestation, authenticates and decrypts the files in
-guest memory, and launches vLLM from that local model directory.
+guest memory, and launches vLLM from that local model directory. On this edge
+cluster, a KServe Standard InferenceService runs the confidential predictor.
 
 ## Components and pinned inputs
 
@@ -143,27 +144,37 @@ an artifact or a key on another cluster.
    oc delete job prepare-encrypted-qwen -n trustee-operator-system
    ```
 
-4. Set `inference.artifactDigest` to the producer's new `sha256:...` result and
-   `inference.enabled: true` and `inference.replicas: 1` in
-   `overrides/values-encrypted-qwen.yaml`. Commit and
-   push. Argo CD deploys the confidential workload. A new key requires a newly
-   encrypted artifact; the old ciphertext will fail authentication with it.
+4. Set `inference.artifactDigest` to the producer's new `sha256:...` result
+   and use `inference.enabled: true`, `inference.servingMode: kserve`, and
+   `inference.replicas: 1` in `overrides/values-encrypted-qwen.yaml`.
+   A new key requires a newly encrypted artifact; the old ciphertext will
+   fail authentication with it.
+
+5. Wait for the KServe predictor and check the nonsecret status endpoint:
 
    ```sh
-   oc rollout status -n gpu-workload deployment/encrypted-qwen --timeout=1800s
+   oc wait -n gpu-workload --for=condition=Ready inferenceservice/encrypted-qwen --timeout=1800s
+   oc get --raw /api/v1/namespaces/gpu-workload/services/encrypted-qwen-status:8080/proxy/startup.log
+   python3 scripts/test-encrypted-inference.py --model-selector app=isvc.encrypted-qwen-predictor --model-container kserve-container --output /tmp/qwen-validation.json
    ```
 
-5. Read the deliberately nonsecret status endpoint and run the live tests:
+   Secure guest policy blocks `oc exec` and host log streaming. The results
+   sidecar exposes startup diagnostics and hashes, not model files or keys.
+   vLLM request logging is disabled. There is no external inference route.
 
-   ```sh
-   oc get --raw \
-     /api/v1/namespaces/gpu-workload/services/encrypted-qwen-status:8080/proxy/startup.log
-   python3 scripts/test-encrypted-inference.py --output /tmp/qwen-validation.json
-   ```
+## KServe serving
 
-   Secure guest policy blocks `oc exec` and host log streaming. The results sidecar
-   exposes startup diagnostics and hashes, not model files or keys. vLLM request
-   logging is disabled. There is no external inference route.
+KServe Standard runs one confidential GPU predictor for
+`InferenceService/encrypted-qwen`. The `encrypted-qwen` and
+`encrypted-qwen-status` Services select that predictor; the shared chat
+continues to use `encrypted-qwen.gpu-workload.svc:8000`. Check its pod and
+model endpoint, then audit a fresh chat request:
+
+```sh
+oc -n gpu-workload get pods -l app=isvc.encrypted-qwen-predictor
+oc -n gpu-workload get endpointslice -l kubernetes.io/service-name=encrypted-qwen
+python3 scripts/audit-qwen-chat.py --model-selector app=isvc.encrypted-qwen-predictor --output /tmp/qwen-kserve-chat-audit.json
+```
 
 ## Shared browser chat on the VPN
 
@@ -377,8 +388,8 @@ To repeat both checks (the routing audit additionally requires permission to rea
 host CRI/process metadata through the machine-config daemon):
 
 ```sh
-python3 scripts/test-encrypted-inference.py --output /tmp/qwen-validation.json
-python3 scripts/audit-qwen-chat.py --output /tmp/qwen-routing.json
+python3 scripts/test-encrypted-inference.py --model-selector app=isvc.encrypted-qwen-predictor --model-container kserve-container --output /tmp/qwen-validation.json
+python3 scripts/audit-qwen-chat.py --model-selector app=isvc.encrypted-qwen-predictor --output /tmp/qwen-routing.json
 ```
 
 The encrypted-array status server had stalled while its containers remained

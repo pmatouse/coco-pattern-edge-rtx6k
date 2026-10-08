@@ -51,8 +51,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url', default='http://10.14.202.14:30080')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--model-selector', default='app=encrypted-qwen')
     args = parser.parse_args()
-    chat, model = ready_pod('app=qwen-chat'), ready_pod('app=encrypted-qwen')
+    chat, model = ready_pod('app=qwen-chat'), ready_pod(args.model_selector)
     service = get('service', 'qwen-chat', '-n', 'gpu-workload')
     assert service['spec']['type'] == 'NodePort'
     assert service['spec']['ports'][0]['nodePort'] == 30080
