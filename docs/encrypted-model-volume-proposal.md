@@ -1,14 +1,33 @@
-# Draft proposal for encrypted model volumes in confidential inference
+# Draft proposal for confidential model and private writable volumes
 
-Date: 8 October 2026
+Updated: 10 October 2026
 
 Use the internal OpenShift OCI registry to distribute immutable, populated LUKS2 disk images. A custom Kubernetes volume populator copies the encrypted images into raw-block PVCs. Confidential inference guests attest to Trustee, unlock and mount those volumes read-only, and start vLLM against a local model directory.
 
 Extend attestation to the approved model release and the serving endpoint. An independently administered release authority maintains current authorization; a measured guest loader verifies model contents and binds its result to fresh evidence. For immutable models, add a dm-verity root anchored in the signed release descriptor to reject replayed blocks as they are read. Signatures and dm-integrity alone do not establish that a release is still authorized.
 
-The inference guest performs no initial formatting, model download, or initial encryption. Registry, importer, storage backend, and host handle ciphertext. Only the trusted publisher and authorized confidential guests handle model plaintext and encryption keys.
+For model volumes, the inference guest performs no initial formatting, model download, or initial encryption. Registry, importer, storage backend, and host handle ciphertext. Only the trusted publisher and authorized confidential guests handle model plaintext and encryption keys.
 
-This is a proposed extension to the Qwen KServe proof of concept, not an installed or validated storage solution. The existing deployment retrieves an encrypted model artifact and decrypts into guest memory. Its current artifact must be converted to the prepared-volume format described here. Implementation must preserve the running KServe service until a separate storage test succeeds.
+Add a separate private persistent read-write volume for application state, generated data and checkpoints. CSI provisions an empty block PVC; approved guest infrastructure initializes it once and reopens it on later starts using Trustee-delivered credentials. Both profiles target ordinary directory mounts in an unprivileged application: `/models` read-only and `/data` read-write. Writable storage uses authenticated LUKS2/dm-integrity with protected headers, without dm-verity. The first version does not guarantee freshness of mutable disk contents or hostile-host writer fencing.
+
+This is a proposed extension to the Qwen KServe proof of concept, not an installed or validated storage solution. The existing deployment retrieves an encrypted model artifact and decrypts into guest memory. Its current model artifact must be converted to the prepared-volume format described here. Private writable storage is also proposed work, not a validated capability of this deployment. Implementation must preserve the running KServe service until a separate storage test succeeds.
+
+## Storage profiles
+
+The profiles share device delivery, guest key retrieval, policy enforcement and mount lifecycle. Their initialization and integrity rules remain distinct.
+
+| Responsibility | Immutable model volume | Private persistent writable volume |
+| --- | --- | --- |
+| Application path | `/models`, read-only | `/data`, read-write |
+| Intended consumers | One or more read-only guests where supported | One confidential VM at a time; no cross-VM sharing |
+| Provision storage | Existing CSI provisioner | Existing CSI provisioner |
+| Prepare initial contents | Trusted publisher; custom populator copies encrypted OCI artifact | Guest service performs explicitly authorized first-use initialization |
+| Protection | Preferred LUKS2 plus verity over header and ciphertext | LUKS2 authenticated dm-crypt/dm-integrity with journaled updates and authenticated header |
+| Restart | Reopen approved immutable release | Reopen the same initialized volume; never format on open failure |
+| Key identity | Versioned model release | Stable private volume identity with versioned credentials/header metadata |
+| Freshness | Current model-release authorization plus pinned verity root | Mutable-sector and snapshot rollback not prevented in the initial version |
+
+CSI and volume population are complementary. CSI provisions and attaches storage; the model populator fills a new PVC with ciphertext. An ordinary new writable volume needs no model source or populator. In both cases, only approved guest infrastructure decrypts and mounts the device.
 
 ## Architecture and responsibilities
 
@@ -25,11 +44,16 @@ flowchart TD
     I -->|Byte copy| B[Raw block PV]
     B -->|Guest device attachment| G[Confidential inference VM]
     T -->|Release secret after authorized attestation| G
+    W[Private volume request] --> C[CSI provisions empty raw block PV]
+    C -->|Guest device attachment| G
+    VAuth[Independent volume authorization service] -->|Initialize or reopen authorization| G
+    G --> Dfs[Private read-write filesystem]
+    Dfs --> L
     G --> M[Read-only model filesystem]
     M --> L[vLLM and confidential GPU]
 ```
 
-| Component | Responsibility | Access to model secrets |
+| Component | Responsibility | Access to protected data or keys |
 | --- | --- | --- |
 | Trusted publisher | Build and sign the prepared encrypted volume | Yes, during publication |
 | Model controller | Discover releases, request population, track consumers and coordinate rollout | No |
@@ -37,7 +61,8 @@ flowchart TD
 | Import worker | Fetch, verify and copy encrypted bytes to the assigned device | No |
 | CSI storage driver | Provision and attach the underlying volume | No |
 | Model release authority and verifier | Maintain current allowed releases; verify model evidence and authorize serving | No model decryption key required |
-| Guest storage integration | Attest, unlock, verify and mount within the VM | Yes |
+| Volume authorization service | Authorize private-volume initialization, workload identity and credential/header versions | No plaintext data required; key provisioning is a separate trusted operation |
+| Guest storage integration | Attest, initialize only when authorized, unlock, verify and mount within the VM | Yes |
 | vLLM | Read model files from `/models` and perform inference | Plaintext model access |
 
 Discovery and population may share one operator binary, but their permissions and reconciliation logic should remain separate. Neither controller should receive Trustee administration credentials or silently approve new release identities.
@@ -46,7 +71,7 @@ Discovery and population may share one operator binary, but their permissions an
 
 Treat the registry, storage backend, import worker, host, and ordinary Kubernetes control plane as untrusted for model confidentiality and authenticity. They can observe ciphertext, sizes, identifiers, timing and access patterns, and can deny service. Storage hardware attestation is not required for this model because storage is not entrusted with plaintext.
 
-Trust the publisher, its signing authority, the attestation verifier, Trustee policy administration, and the approved guest software. A guest's CPU and GPU evidence must satisfy the inference policy before secrets are released. The approved guest configuration must also constrain what code can access the secret. Hardware attestation alone is not authorization for arbitrary workload code.
+Trust the publisher, its signing authority, the attestation verifier, Trustee policy administration, the private-volume authorization service, and the approved guest software. Writable-volume authorization and recovery records require independent administration just as model-release authorization does. For this GPU inference workload, CPU and GPU evidence must satisfy its resource policy before secrets are released. Other private-volume workloads require their approved CPU/workload evidence and GPU evidence only where their policy calls for a GPU. The approved guest configuration must also constrain what code can access the secret. Hardware attestation alone is not authorization for arbitrary workload code.
 
 The present PoC's permissive image/debug policy and co-located secret administration boundary need hardening before claiming protection against a malicious cluster administrator. A production design needs independently controlled Trustee secrets and policies, plus an approved guest policy bound to attestation. This proposal does not make those properties automatic.
 
@@ -56,13 +81,13 @@ The guest obtains an authenticated release descriptor using a trust anchor prote
 
 The design deliberately excludes the disk, storage controller, storage server and their firmware from the trusted computing base for model confidentiality and authenticity. Treat them as a black box that can return arbitrary bytes, preserve old snapshots, or stop responding. We do not need evidence that this hardware is running approved firmware to trust the model, because we do not trust it with model plaintext or rely on its claims about the data.
 
-The trusted publisher encrypts the volume before it reaches the registry or storage backend. Importers, CSI components, storage caches and backups handle the encrypted representation. Decryption, verification and filesystem access occur inside an authorized confidential VM. The storage system has neither the unlock secret nor the unwrapped volume key. This applies equally to Path A and Path B: moving mount management into the platform must not move decryption onto the host.
+For model volumes, the trusted publisher encrypts the volume before it reaches the registry or storage backend. For writable volumes, the guest initializes encryption before any confidential application data is stored on the backing device. Importers, CSI components, storage caches and backups handle the encrypted representation. Decryption, verification and filesystem access occur inside an authorized confidential VM. The storage system has neither the unlock secret nor the unwrapped volume key. This applies equally to Path A and Path B: moving mount management into the platform must not move decryption onto the host.
 
 | Action by malicious storage | Protection and remaining limit |
 | --- | --- |
 | Read or copy the volume | Guest-side encryption protects model contents; ciphertext and storage metadata remain observable |
 | Modify encrypted sectors | Cryptographic authentication detects invalid modifications when read; the workload fails rather than accepting them |
-| Return previously valid blocks | The authorized dm-verity root constrains the exact filesystem contents accepted on each read |
+| Return previously valid blocks | For models, the authorized dm-verity root constrains protected contents on each read. Writable volumes may accept old valid sector/tag pairs; no mutable-state freshness is claimed |
 | Restore an entire old model image and its valid metadata | Independent current-release authorization rejects a revoked release; signatures alone are insufficient |
 | Redirect attachment to another volume | The guest verifies the authorized descriptor, content identity and verified mapping; a device name or UUID alone is not trusted |
 | Delete data, delay reads or disconnect | Availability is lost; encryption and attestation cannot force storage to serve data |
@@ -73,7 +98,7 @@ CPU and GPU attestation serve a different purpose. Those components host the env
 
 Storage hardware attestation could still be useful for a separate infrastructure assurance or compliance requirement. It would become relevant to this trust boundary if decryption, plaintext caching, or model computation were delegated to storage hardware. That is outside this design. We also do not claim to hide access patterns, prevent denial of service, or prove physical deletion of every retained copy. Normal TEE isolation and protection from unauthorized device access remain prerequisites; treating storage as untrusted does not remove those platform requirements.
 
-## Prepared OCI artifact
+## Prepared model OCI artifact
 
 The preferred candidate for immutable models is a raw image containing a complete LUKS2 region followed by a dm-verity hash tree, with no partition table. The protected region includes the LUKS header and encrypted filesystem/model data. The descriptor selects a versioned profile and records the exact protected length and tree location. The alternative authenticated-sector profile described below uses a different layout; consumers must not infer the profile or silently substitute one for another.
 
@@ -90,7 +115,7 @@ OCI supports distributing content through manifests and blobs. Verify the intern
 
 Pin every release by digest. Tags can help discover releases but must not determine what an already approved PVC contains. Encrypted data generally compresses poorly; avoid excessive unused filesystem capacity. Size the image for model contents, filesystem overhead and integrity metadata, and measure actual publication/import costs.
 
-## Trusted publication lifecycle
+## Trusted model publication lifecycle
 
 1. Authenticate the input model and select the exact weights, tokenizer and configuration. Produce a signed file manifest. Disable fetching unapproved remote model code during serving.
 2. Generate a fresh volume encryption key through the approved LUKS tooling and a strong independent keyslot unlock secret. Use a new volume/key identity per release initially.
@@ -109,12 +134,12 @@ The `dm` prefix means Linux device mapper. These components run in the guest ker
 | Component | Purpose in this proposal | Concrete example | What it does not establish |
 | --- | --- | --- | --- |
 | **dm-crypt** | Encrypts and decrypts sectors using the volume key inside the guest. With an authenticated mode, also computes and checks authentication tags. | A storage administrator copying the PVC obtains ciphertext rather than model weights. | Ordinary AES-XTS alone does not detect tampering. Encryption does not establish the approved model version. |
-| **dm-integrity** | In the alternative authenticated-sector profile, stores per-sector metadata and coordinates data/tag writes; dm-crypt supplies and verifies the cryptographic tags. | A modified encrypted sector fails authentication instead of silently becoming corrupted plaintext. | Standalone CRC tags are not protection against a malicious writer. Valid old sector/tag pairs can still be replayed. |
+| **dm-integrity** | In the writable and alternative model profiles, stores per-sector metadata and coordinates data/tag writes; dm-crypt supplies and verifies the cryptographic tags. | A modified encrypted sector fails authentication instead of silently becoming corrupted plaintext. | Standalone CRC tags are not protection against a malicious writer. Valid old sector/tag pairs can still be replayed. |
 | **dm-verity** | Verifies immutable blocks against an independently authenticated root. The preferred profile covers the LUKS header and ciphertext; the alternative covers the inner filesystem. | A header or data block from a different protected image fails against the approved root. | It provides no encryption and does not decide whether an entire correctly signed old release is still allowed. |
 | **LUKS2 and cryptsetup** | Record encryption parameters and protected volume-key slots; configure the guest mappings after unlocking. | Rotate the Trustee-held unlock secret through keyslots without rewriting all model data. | Keyslot changes do not rotate the underlying volume key or revoke already unlocked guests. |
 | **Trustee and release authorization** | Release secrets to approved attested guests and enforce the current permitted release identity/epoch through the proposed policy integration. | Deny a retired release even when its disk image and signature remain valid. | They cannot erase previously released keys or force untrusted storage to remain available. |
 
-The kernel documents [dm-crypt encryption and authenticated modes](https://docs.kernel.org/admin-guide/device-mapper/dm-crypt.html), [dm-integrity metadata handling](https://docs.kernel.org/admin-guide/device-mapper/dm-integrity.html), and [dm-verity read verification](https://docs.kernel.org/admin-guide/device-mapper/verity.html) separately. In the alternative authenticated-sector profile, sector authentication is a combined dm-crypt/dm-integrity function, not a guarantee from the name `dm-integrity` alone. In the preferred immutable profile, dm-verity provides integrity against the authenticated root.
+The kernel documents [dm-crypt encryption and authenticated modes](https://docs.kernel.org/admin-guide/device-mapper/dm-crypt.html), [dm-integrity metadata handling](https://docs.kernel.org/admin-guide/device-mapper/dm-integrity.html), and [dm-verity read verification](https://docs.kernel.org/admin-guide/device-mapper/verity.html) separately. In the writable and alternative model profiles, sector authentication is a combined dm-crypt/dm-integrity function, not a guarantee from the name `dm-integrity` alone. In the preferred immutable profile, dm-verity provides integrity against the authenticated root.
 
 The preferred candidate for immutable model reads is:
 
@@ -141,7 +166,7 @@ Untrusted PVC returns ciphertext and tags
 
 In that alternative, verity does not cover the outer LUKS header. Copy the complete expected header into guest-private memory, authenticate that exact copy against the approved descriptor or trusted authentication material, validate the permitted configuration, and use it as a detached header. Do not check host storage and then let cryptsetup reread it. Header changes require updated authentication material and release authorization. The [LUKS header security analysis](https://blog.trailofbits.com/2025/10/30/vulnerabilities-in-luks2-disk-encryption-for-confidential-vms/) explains why protecting payload sectors alone is insufficient.
 
-All three device-mapper components are not universally necessary. Keep the alternative profile explicit and separately tested; measure its extra integrity metadata, compatibility and performance costs. For mutable storage, dm-verity cannot verify ordinary changing contents against a fixed root. A separate writable profile can use authenticated dm-crypt/dm-integrity with protected headers, but needs recovery, writer coordination and freshness semantics outside this immutable-model scope. CRC-only dm-integrity is insufficient against malicious modification.
+All three device-mapper components are not universally necessary. Keep the alternative profile explicit and separately tested; measure its extra integrity metadata, compatibility and performance costs. For mutable storage, dm-verity cannot verify ordinary changing contents against a fixed root. The private writable profile below uses authenticated dm-crypt/dm-integrity with protected headers and explicit recovery and ownership rules. Mutable-state freshness remains a separate requirement, not a property of dm-integrity. CRC-only dm-integrity is insufficient against malicious modification.
 
 Pin the guest kernel, cryptsetup version, algorithms, sector geometry and integrity options as a tested profile. Do not silently fall back to encryption without authentication if a required feature is absent. Avoid recovery modes that bypass verification or recalculate tags over untrusted data. The publisher must finish pending work so guests can open and read without modifying the shared image.
 
@@ -235,7 +260,7 @@ sequenceDiagram
 
 The initial milestone rejects old volumes at new launch and fresh session authorization. Rejecting already running stale instances is a separate milestone requiring the live authorization mechanism above.
 
-## Proposed Kubernetes API
+## Proposed model population API
 
 The following is an API sketch, not an existing CRD or deployable manifest. Source specs should be immutable; use a new object for each release.
 
@@ -274,6 +299,8 @@ spec:
 
 Keep sources, consumer PVCs and registry credential references in the same namespace initially. If population workers use another namespace, implement deliberate credential handling with restricted scope rather than granting them broad Secret access. Registry credentials permit encrypted artifact retrieval only; they are not model unlock credentials.
 
+The volume-populator mechanism is GA upstream since Kubernetes 1.33 and in OpenShift since 4.20. OpenShift 4.22 documents it as GA, enabled by default, and ships `volume-data-source-validator`; it does not ship the source-specific model populator. Our same-namespace `dataSourceRef` design requires no Technology Preview feature set. The EncryptedModelSource CRD, controller and OCI importer remain custom implementation work; platform GA does not imply Red Hat support for that custom code. This is documentation-based feature status, not a fresh check of the running cluster. [Kubernetes GA announcement](https://kubernetes.io/blog/2025/05/08/kubernetes-v1-33-volume-populators-ga/), [OpenShift 4.20 release notes](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html-single/release_notes/index), [OpenShift 4.22 storage](https://docs.redhat.com/en/documentation/openshift_container_platform/4.22/html-single/storage/index)
+
 Custom data sources require an installed controller. `dataSourceRef` does not execute code or teach a CSI driver how to import OCI content. Kubernetes' volume-populator framework provides the integration point. [Kubernetes volume populators](https://kubernetes.io/blog/2025/05/08/kubernetes-v1-33-volume-populators-ga/)
 
 ## Population timeline
@@ -296,6 +323,88 @@ This follows the temporary-volume pattern used by the [volume-populator machiner
 The controller watches API events; KServe does not invoke it. With `WaitForFirstConsumer`, a consumer pod may need to exist to select a node/topology before provisioning proceeds. Support that flow rather than waiting unconditionally for a Bound PVC before creating any consumer. Prewarming without an inference pod requires a topology-aware preparation strategy validated with the storage driver.
 
 The importer copies ciphertext bytes, not extracted model files. It never opens LUKS or formats the device. It must respect signed length limits, handle short writes, flush, and validate the copied range. Any extra device tail is outside the signed image and must not trigger automatic filesystem growth. A failed copy is never handed over as successful.
+
+## Private persistent read-write storage
+
+This profile serves one confidential VM at a time, with persistence across pod replacement. It does not use the model publisher, EncryptedModelSource or an OCI import job. Kubernetes/CSI supplies an empty raw-block PVC; the guest owns encryption and filesystem setup. No application container performs mount operations.
+
+The [CAA peer-pod storage flow](https://confidentialcontainers.org/blog/2026/08/14/encrypted-persistent-storage-for-peer-pods-with-the-caa-csi-block-driver/#5-inside-the-tee-attestation--key-fetch--mount) is a useful integration reference: a guest interceptor calls CDH before the application starts. For bare-metal Kata, reuse that division of responsibility through the agent/CDH integration. Do not copy its LUKS-magic-based format decision: absence of a header does not authorize initialization.
+
+### Volume identity and trusted authorization
+
+Introduce an independently controlled volume authorization service, potentially sharing infrastructure with the model release authority. It maintains a durable record containing the logical volume ID, approved workload/guest policy, crypto/filesystem profile, credential reference and version, authenticated header identity/version, initialization state and operation generation. Kubernetes PVC UIDs and backend identifiers are useful attachment references, not cryptographic proof of identity.
+
+Trustee retains or retrieves the versioned unlock secret and releases it to approved attested guests. The volume service authorizes initialize versus reopen, and the measured guest service enforces that authorization before mutation. Its state machine and integration with Trustee are new development; Trustee is not assumed to provide this lifecycle or a writer-lease API. Administrative and recovery state must remain outside the untrusted workload cluster's rollback domain.
+
+Use a distinct strong credential and volume identity for each writable volume. A trusted provisioning process creates the unlock credential; guest cryptsetup creates the volume key during initial formatting. Protect and version the detached header that contains its encrypted keyslots. Header verification material must bind the volume ID and profile, using a defined MAC/signature scheme or an authenticated exact-header digest. Domain-separate any derived authentication key. Neither the CSI plugin nor application receives these secrets or administrative permissions.
+
+### First use and reopen lifecycle
+
+| State or operation | Required behavior |
+| --- | --- |
+| Provisioned, uninitialized | A raw-block PVC exists. No permission to format is inferred from its content or Kubernetes status |
+| Begin initialization | Approved guest attests; the authority durably records `Initializing` and binds a single initialization attempt to the volume, generation and guest session before authorizing writes |
+| Initialize | Guest validates the device/profile and allowed starting state, creates LUKS2 plus authenticated journaled integrity, initializes integrity metadata and ext4, and records authenticated recovery metadata |
+| Commit initialization | Persist and flush the filesystem/header state, authenticate the finalized header, and acknowledge completion to the authority; it records `Ready` before normal application use |
+| Reopen `Ready` | Fresh guest authorization and key retrieval; copy/authenticate the header in guest-private memory, open the protected device, recover the filesystem journal as permitted, then mount `/data` |
+| Interrupted initialization | Reconcile the recorded operation and authenticated phases. Do not issue a fresh format request or infer success from disk magic; ambiguous state requires explicit recovery |
+| Normal teardown | Stop consumers, flush, unmount, close mappings, then release the attachment |
+| Retired | Deny new activation; retain or delete ciphertext and recovery material according to explicit retention policy |
+
+These are proposed trusted-service states, not PVC phases. A zero-filled device check can detect unexpected content during an authorized first use, but cannot establish newness against a host that can substitute disks. A `Ready` volume presented as blank must be rejected. Destroy-and-recreate requires an explicit operation and a new generation/identity; it must not happen as an error-recovery shortcut.
+
+Handle crashes between every disk write and authority-state transition. Bind retries to the same operation; record the header identity early enough to recover an interrupted attempt without accepting arbitrary host metadata. Start with conservative recovery that stops on ambiguous state. The [persistent LUKS prototype #1648](https://github.com/confidential-containers/guest-components/pull/1648) provides header and crash-state code to evaluate, but is not a complete implementation of the independent authorization protocol.
+
+### Writable integrity and crash recovery
+
+```text
+Application writes /data
+  → guest ext4 filesystem and its journal
+  → dm-crypt encryption and cryptographic integrity tags
+  → journaled dm-integrity data/tag storage
+  → untrusted block PVC
+```
+
+Authenticate the copied LUKS header before cryptsetup uses it, and pass that guest-private copy as a detached header. Validate the complete allowed cipher, integrity, geometry and journal configuration. Do not trust parameters read directly from mutable host storage. dm-verity is not used for this changing filesystem.
+
+Choose and pin a tested authenticated dm-crypt/dm-integrity profile, including protection of integrity/journal metadata. CRC-only integrity is insufficient. Require journaled data/tag updates and complete initial integrity setup before application use; do not copy ephemeral no-journal/no-wipe settings without a separate crash-consistency analysis. Filesystem journaling and integrity journaling solve different consistency problems. Both require correct flush/FUA ordering through guest, virtio, hypervisor and backend. Neither can force a malicious storage service to retain acknowledged writes. [Linux dm-integrity documentation](https://docs.kernel.org/admin-guide/device-mapper/dm-integrity.html)
+
+On authentication failure, fail affected I/O and stop or isolate the application according to an explicit failure policy. Do not regenerate tags over untrusted data or enable a verification-bypass recovery mode during normal operation. Record that generic filesystems can expose partially completed application transactions after crashes; applications remain responsible for their own transactional semantics.
+
+### Single consumer and freshness limits
+
+Request `ReadWriteOncePod` where the CSI driver supports it, and validate raw-block attachment into the actual guest. `ReadWriteOnce` permits multiple pods on one node and is not an equivalent substitute. Use stop-before-start replacement, with confirmed teardown/detachment before a new normal consumer; if ownership is uncertain, stop automatic takeover and require recovery. [Kubernetes access modes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes)
+
+This provides operational exclusivity under the supported Kubernetes/storage behavior, not fencing against a malicious host. An attacker may duplicate attachments or preserve a guest that already has the key. Limiting new key releases, tracking an owner or expiring an authority record alone cannot revoke that guest's block access. Hostile-host fencing would require an additional enforceable ownership protocol; do not claim it in the first version.
+
+Authenticated sectors, headers and journals do not establish freshness. The host may replay old valid sector/tag pairs or an entire authenticated snapshot. An independent `Ready` record prevents automatic reinitialization, but does not track every application write and cannot prove the disk contains the newest state. Private and unshared does not mean rollback-resistant.
+
+The initial writable profile explicitly excludes mutable-state rollback protection. Do not use it as the sole trusted source for security counters, authorization state or transaction history requiring freshness. Those uses need application-aware external commits/checkpoints or another reviewed rollback-resistant protocol. Ordinary snapshot restore must be an explicit recovery operation, never described as preserving latest-state guarantees.
+
+### Unprivileged application interface
+
+The guest agent/storage service prepares the mount before container startup and places it into the authorized container mount namespace. CDH performs authorized key retrieval and activation. Application containers receive neither the raw device nor device-mapper control, and cannot invoke the privileged storage API. A privileged init container or sidecar is not the proposed solution.
+
+```text
+One confidential pod VM
+├── Guest services: Kata agent, storage service, CDH and attestation
+│   Initialize/open, verify, mount, recover and close storage
+└── Unprivileged application
+    /models  read-only approved model
+    /data    private read-write application state
+```
+
+The target is `privileged: false`, `allowPrivilegeEscalation: false` and no storage-related capabilities, ideally dropping all capabilities. Validate GPU access separately. Merely presenting a decrypted `volumeDevices` device does not meet this interface; guest-side filesystem mounting and container placement must also work.
+
+CSI delivery still uses raw block storage. Define a policy-bound guest mount contract carrying volume identity, profile, initialize/reopen authorization and container destination; do not assume changing a PVC to `Filesystem` moves host mount operations into the guest. The exact declarative interface remains implementation work.
+
+Writable contents must not silently replace model weights, tokenizer, adapters, code or serving configuration bound to the approved model release. If an application intentionally loads any of these from `/data`, it must reverify them and renew the corresponding serving authorization. Separate persistent application data from disposable caches, prompts and logs according to the workload's retention requirements.
+
+### Backup, maintenance and scope
+
+Snapshots contain ciphertext and the associated header/integrity metadata. Require application quiescing or a documented crash-consistent restore procedure; a disk snapshot alone does not guarantee application consistency or freshness. Keep versioned authenticated header/recovery material and required Trustee credentials under deliberate backup policy. Restoring a snapshot is an explicit rollback and may require reconciling external application state.
+
+Defer online resize, live migration and in-place key rotation in the first version. Future header/keyslot maintenance needs a quiesced, authorized transaction that updates protected header metadata and coordinates recovery. Volume-key rotation can migrate data inside an approved guest to a newly initialized volume, but requires its own tested maintenance workflow. Revoking future key release cannot erase keys or plaintext already held by a guest.
 
 ## Guest and KServe integration
 
@@ -325,16 +434,16 @@ Initially, a controlled guest bootstrap can perform unlocking and mounting. Devi
 
 The long-term application interface is an already mounted `/models`, supplied by a CoCo-aware CSI/Kata agent/CDH integration. A custom populator does not provide that guest mount integration. Kata has direct-volume work, but its presence upstream does not prove compatibility with the installed OpenShift runtime or provide the Trustee/LUKS workflow automatically. [Kata direct-volume CSI project](https://github.com/kata-containers/kata-containers/tree/main/src/tools/csi-kata-directvolume)
 
-Put caches, generated files and temporary inference data on separate guest-private storage. Account for guest page cache, integrity overhead, CPU decryption and GPU memory; disk-backed weights reduce the need to hold the whole decrypted artifact in tmpfs but do not eliminate model-loading memory requirements.
+Put persistent generated data and application state on the private writable `/data` volume. Put disposable caches and temporary inference data on separate guest-private ephemeral storage where appropriate. Account for guest page cache, integrity overhead, CPU decryption and GPU memory; disk-backed weights reduce the need to hold the whole decrypted artifact in tmpfs but do not eliminate model-loading memory requirements.
 
 ## Two implementation paths and development scope
 
-Both paths use the same prepared OCI artifact, EncryptedModelSource, custom volume populator, release authorization and guest-side verification. They differ in who opens and mounts the encrypted device. A custom populator is a Kubernetes controller, not a CSI driver.
+Paths A and B describe who opens and mounts storage, independently of the read-only/read-write profiles. For model storage, both use the prepared OCI artifact, EncryptedModelSource, populator and release authorization. Writable storage instead uses ordinary CSI provisioning and the private-volume lifecycle above. A custom populator is a Kubernetes controller, not a CSI driver. Path B is the target for both profiles so application containers never need mount privileges.
 
 | Decision | Path A existing block CSI and guest bootstrap | Path B transparent CoCo storage integration |
 | --- | --- | --- |
 | Storage provisioning | Existing CSI driver with validated raw-block support | Reuse the storage backend and its provisioning where possible |
-| Workload interface | `volumeDevices` exposes the encrypted device; approved bootstrap prepares `/models` | Declarative confidential-volume mount; application receives `/models` |
+| Workload interface | `volumeDevices` exposes encrypted storage; approved bootstrap prepares mounts | Declarative confidential-volume requests; application receives `/models` and/or `/data` |
 | Unlock and mount owner | Guest bootstrap associated with the workload | Kata guest agent or dedicated trusted guest storage service, using CDH |
 | Application change | Custom entrypoint or supervisor around vLLM | No storage setup in the vLLM entrypoint; model-serving attestation still needs integration |
 | Custom CSI required | Not inherently; depends on actual device attachment compatibility | Possibly an extension or adapter, coordinated with runtime changes; not automatically a new storage driver |
@@ -348,6 +457,8 @@ Develop a reproducible publisher for the authenticated encrypted disk format and
 Develop the model-release authority integration, Trustee policies, trusted loader/verifier, endpoint-bound evidence exchange and serving authorization. Package restrictive guest policies and approved runtime/model identities. Moving mounts into the platform does not eliminate these security requirements or make ordinary vLLM automatically attest its loaded model.
 
 Validate internal registry compatibility, image signatures, raw-block provisioning, prime-PVC handover, topology, clone/snapshot behavior and access modes. Build the corruption, replay, policy-denial and lifecycle tests described in the acceptance plan. These are common dependencies, not reasons to write a new CSI driver.
+
+The writable profile additionally requires a volume authorization record/service, initialization and recovery protocol, authenticated header management, and tests for single-consumer replacement. Reuse the shared guest activation lifecycle, but never reuse model release state as a substitute for mutable-volume state.
 
 ### Path A existing CSI with guest bootstrap
 
@@ -382,7 +493,8 @@ One confidential VM for one Kubernetes pod
 │       Authorized key retrieval inside the VM
 └── Application container
     └── vLLM
-        Read-only /models; no raw storage device or device-mapper access
+        Read-only /models and private read-write /data
+        No raw storage device or device-mapper access
         No storage-related CAP_SYS_ADMIN or privileged container setting
 ```
 
@@ -399,7 +511,7 @@ Populator → populated encrypted volume → CSI and Kata coordination
          → guest agent and CDH unlock/verify/mount → application sees /models
 ```
 
-Develop a versioned contract for the volume identity, authenticated descriptor, key-resource reference, read-only requirement and container mount destination. Decide how a workload declares this request and how metadata crosses the CSI/runtime boundary. Host-supplied values are untrusted inputs: the guest must validate them against the authorized descriptor and policy. A generic CSI node plugin normally runs on the host, so secret retrieval and decryption cannot simply be moved into that plugin.
+Develop a versioned contract for the volume identity, authenticated descriptor or volume record, key-resource reference, access mode, initialize/reopen operation and container mount destination. Decide how a workload declares this request and how metadata crosses the CSI/runtime boundary. Host-supplied values are untrusted inputs: the guest must validate them against the authorized descriptor and policy. A generic CSI node plugin normally runs on the host, so secret retrieval and decryption cannot simply be moved into that plugin.
 
 Implement or extend Kata shim/agent integration to identify the attached device, call the guest storage service/CDH, create the verified mapping, and bind the resulting filesystem into the correct container mount namespace before application startup. Add agent-policy authorization for each operation, with no host fallback and no permission to substitute an arbitrary key reference, device, root hash or mount destination.
 
@@ -409,7 +521,7 @@ Determine what the current CSI driver and runtime already support before choosin
 
 Define the application-facing mount API explicitly. An ordinary filesystem PVC or changing `volumeMode: Block` to `Filesystem` does not cause an existing CSI driver to unlock inside the guest; it can instead trigger host formatting/mounting or fail on the LUKS device. Keep encrypted storage opaque on the host. A new mount declaration, admission translation or CSI/runtime-specific contract needs implementation and versioned documentation before promising a normal `volumeMount` experience.
 
-Package the runtime, guest and any CSI changes for the target OpenShift/OSC versions; maintain upgrade and compatibility tests. Validate that an otherwise unmodified vLLM container receives only the verified read-only mount, while the separate trusted model supervisor still controls load-complete evidence and serving authorization.
+Package the runtime, guest and any CSI changes for the target OpenShift/OSC versions; maintain upgrade and compatibility tests. Validate that an otherwise unmodified vLLM container receives only the approved read-only model and optional private read-write directory mounts, while the separate trusted model supervisor still controls load-complete evidence and serving authorization.
 
 Completion means application storage setup disappears from the entrypoint, multiple workload types can use the integration, mount and teardown are reliable, and the same security tests pass without granting application containers mount privileges. This path has broader platform engineering and maintenance scope. Reuse Path A's publisher, populator and policy work when moving to it.
 
@@ -448,7 +560,7 @@ The proposed activation/deactivation API is useful for separating CDH's key and 
 
 Upstream's [ephemeral-header fix #1313](https://github.com/confidential-containers/guest-components/pull/1313) puts newly created LUKS headers in guest memory; it explicitly leaves the existing-encrypted-volume path unchanged. The persistent LUKS prototype in #1648 authenticates a copied header before cryptsetup consumes it and tracks initialization state, avoiding reformatting on ordinary reopen failures. Header/state authentication alone provides neither data-sector integrity nor rollback protection.
 
-Reuse these patterns for the alternative authenticated-sector profile and future writable storage. For the preferred immutable profile, verity must cover the complete header and every LUKS region consumed, with cryptsetup reading only through the verified mapping. Any separately extracted header must remain authenticated for its exact use.
+Reuse these patterns for the alternative authenticated-sector profile and the private writable profile. For the preferred immutable profile, verity must cover the complete header and every LUKS region consumed, with cryptsetup reading only through the verified mapping. Any separately extracted header must remain authenticated for its exact use.
 
 ### Supporting work and remaining scope
 
@@ -458,7 +570,7 @@ Use measured agent policy and [Init-Data](https://confidentialcontainers.org/doc
 
 Evaluate the read-only CDH/Kata prototype before building a new guest storage service. Keep the OCI publisher, EncryptedModelSource and custom populator as the distribution layer, with ciphertext-only importers. Remaining work includes runtime compatibility, unprivileged filesystem delivery, authorization, teardown, current-release checks and end-to-end tests. A CSI adaptation is needed only where the selected driver/runtime cannot deliver the encrypted block device and necessary metadata safely.
 
-## Sharing and updates
+## Model sharing and updates
 
 Start with one consumer and one populated PVC. For replicas, use validated read-only multi-attachment or separate PVCs populated/cloned from the same approved encrypted image. CSI access modes and Kata device attachment determine feasibility. `ReadWriteOnce` may allow multiple pods on one node, but does not guarantee multi-guest attachment. Do not independently mount ordinary ext4/XFS read-write in multiple VMs. [Kubernetes access modes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes)
 
@@ -479,6 +591,8 @@ Changing the predictor's PVC triggers a pod rollout. With the current single rep
 
 ## Key rotation and retirement
 
+The following publication workflow applies to immutable model releases. Writable-volume maintenance has separate coordination requirements described above; do not replace live `/data` contents through the model populator.
+
 Keyslot-secret rotation replaces the credential that unlocks the existing volume key. For immutable releases, perform header changes in the trusted publisher, never on a volume mounted by consumers. In the preferred profile, rebuild the ciphertext verity tree and publish a new image digest, root and authorized descriptor. In the alternative profile, update header authentication material and the descriptor even when the inner filesystem root is unchanged. Verify the new secret, roll out the new release and then retire the old slot/resource authorization. Existing mounted guests remain able to use the old volume, and saved old headers plus old secrets can still recover the unchanged key.
 
 For actual volume-key rotation, create a newly encrypted artifact and new PVCs, then migrate consumers. This is the preferred approach for immutable models and avoids assuming in-place reencryption works with the selected integrity profile and multiple mounts. LUKS distinguishes keyslot changes from full volume reencryption. [Cryptsetup reencryption documentation](https://gitlab.com/cryptsetup/cryptsetup/-/blob/main/man/cryptsetup-reencrypt.8.adoc)
@@ -497,6 +611,10 @@ Retire releases only after consumers and importer attachments are gone. Apply de
 | Trustee unavailable or attestation denied | No unlock and no inference readiness |
 | Verity or sector authentication failure | Fail the read and serving gate; do not bypass verification or repair tags automatically |
 | Header corruption or substituted crypto profile | Reject through the verified mapping or detached-header authentication before unsafe activation; never format the model device |
+| Private volume initialization interrupted | Resume only the authorized operation through verified recovery states; ambiguous state stops startup |
+| Initialized private volume appears blank | Reject; do not reformat or silently create a new volume |
+| Private volume owner or detach state uncertain | Stop automatic replacement pending explicit recovery; do not claim hostile-host fencing |
+| Valid old writable sectors or snapshot replayed | May be accepted in the initial profile; mutable-state freshness is not guaranteed |
 | Old but correctly signed release presented | Enforce current trusted release policy; reject if revoked |
 | Old quote, nonce or serving authorization replayed | Reject session/audience mismatch, reused challenge or stale authorization |
 | Storage changes after the initial model check | Verify reads against the approved dm-verity root and fail on mismatch |
@@ -509,16 +627,21 @@ Use reconciliation and finalizers to prevent deletion races. Before reclaiming a
 
 ## Implementation and acceptance plan
 
-1. **Evaluate upstream reuse and compatibility.** Compare the read-only CDH/Kata prototype with the installed runtime, guest kernel, cryptsetup and CSI raw-block path. Record which changes are merged, which require porting, and whether the agent can deliver `/models` without application storage privileges. Use a separate workload; do not change the live predictor.
-2. **Prove the immutable profile with a tiny prepared volume.** Establish ciphertext verity, open LUKS read-only and mount inside the guest using CDH-delivered credentials. Test header/data corruption, wrong roots, attempted writes, reopen and cleanup. If Path B integration is unavailable, use controlled Path A bootstrap as a compatibility proof and record its privilege requirements.
-3. **Build a reproducible publisher and importer.** Produce the finalized LUKS region and verity tree, sign the descriptor, publish through the internal registry and import ciphertext into a test PVC. Verify media-type and large-blob behavior. Never format the consumer device.
-4. **Implement the custom populator.** Define EncryptedModelSource and its immutable fields, use supported populator machinery, and test Pending-to-Bound handover, topology, retries, cleanup and controller restarts.
-5. **Complete guest mount delivery and integrate Qwen separately.** Reuse or extend agent/CDH activation and teardown; require only a verified directory in the vLLM container for Path B. Test inference in a separate KServe workload and compare cold-start time, storage, guest memory and throughput with the tmpfs flow.
-6. **Implement model freshness and evidence.** Add independent release authorization, the measured loader, the second attestation exchange and endpoint-key binding. First test new-launch/session rollback rejection; then running-session revocation with enforceable online freshness. Successful inference alone does not complete this security milestone.
-7. **Add controlled lifecycle management and packaging.** Introduce discovery, approval, rollout, retention and rotation. Test read-only sharing or per-replica clones. Package runtime/guest and any CSI adaptation for the target OpenShift versions, with upgrade tests, before production rollout.
+1. **Evaluate upstream reuse and compatibility.** Compare the read-only CDH/Kata prototype, writable header/recovery work and CAA guest-mount pattern with the installed runtime, guest kernel, cryptsetup and CSI raw-block path. Record which changes are merged, which require porting, and whether the agent can deliver `/models` without application storage privileges. Use a separate workload; do not change the live predictor.
+2. **Prove private writable storage in guest services first.** Use a disposable small PVC and unprivileged application. Implement explicit first-use authorization, protected headers, journaled integrity, guest mounting and cleanup. Prove write → sync → pod replacement → reopen → read, plus the writable negative tests below. Do not attach it to the live KServe workload.
+3. **Prove the immutable profile with a tiny prepared volume.** Establish ciphertext verity, open LUKS read-only and mount inside the guest using CDH-delivered credentials. Test header/data corruption, wrong roots, attempted writes, reopen and cleanup. If Path B integration is unavailable, use controlled Path A bootstrap as a compatibility proof and record its privilege requirements.
+4. **Build a reproducible publisher and importer.** Produce the finalized LUKS region and verity tree, sign the descriptor, publish through the internal registry and import ciphertext into a test PVC. Verify media-type and large-blob behavior. Never format the consumer device.
+5. **Implement the custom populator.** Define EncryptedModelSource and its immutable fields, use supported populator machinery, and test Pending-to-Bound handover, topology, retries, cleanup and controller restarts.
+6. **Complete guest mount delivery and integrate Qwen separately.** Reuse or extend agent/CDH activation and teardown; require only a verified directory in the vLLM container for Path B. Test inference in a separate KServe workload and compare cold-start time, storage, guest memory and throughput with the tmpfs flow.
+7. **Implement model freshness and evidence.** Add independent release authorization, the measured loader, the second attestation exchange and endpoint-key binding. First test new-launch/session rollback rejection; then running-session revocation with enforceable online freshness. Successful inference alone does not complete this security milestone.
+8. **Add controlled lifecycle management and packaging.** Introduce discovery, approval, rollout, retention and rotation. Test read-only sharing or per-replica clones. Package runtime/guest and any CSI adaptation for the target OpenShift versions, with upgrade tests, before production rollout.
 
-Acceptance tests must include a successful inference; denied CPU/GPU/workload policy; wrong unlock secret; corrupted LUKS header; substituted verity root or geometry; ciphertext tampering after import; stale release rejection; partial import; dirty-image rejection; restart without importing again; safe model update; and keyslot versus volume-key rotation. For shared volumes, also test two simultaneous read-only guests and attempted writes. Use disposable volumes for corruption tests.
+Model-volume acceptance tests must include a successful inference; denied CPU/GPU/workload policy; wrong unlock secret; corrupted LUKS header; substituted verity root or geometry; ciphertext tampering after import; stale release rejection; partial import; dirty-image rejection; restart without importing again; safe model update; and keyslot versus volume-key rotation. For shared volumes, also test two simultaneous read-only guests and attempted writes. Use disposable volumes for corruption tests.
 
 Model-attestation tests must restore a correctly signed but revoked old volume; substitute a different descriptor/key reference; replay old evidence and a consumed nonce; claim an approved hash from an unapproved loader; redirect a client to a different endpoint key; change an adapter or tokenizer; and replay previously valid blocks after initial verification. All must fail at the appropriate authorization or read boundary. Test authority state recovery without epoch rollback, deliberate two-version rollout, renewal refusal, and the stated limit for already running guests. Demonstrate that no inference request succeeds before the guest-side gate opens, even if host-controlled readiness or Service routing is manipulated.
 
-The first deliverable is a validated publisher → registry → populator → PVC → guest unlock → vLLM path. Automatic production rollout follows only after that path and the policy boundaries pass these tests.
+Writable-volume acceptance tests must cover explicit initialization authorization; restart without reformatting; interrupted initialization at each disk/authority transition; wrong keys; modified headers; data/tag and journal corruption; guest crashes and filesystem recovery; second-pod attachment refusal under normal cluster operation; ambiguous ownership; cleanup after partial activation; and rejection of a blank device for a Ready record. Prove the application has no mount capabilities, raw-device access or privileged storage API access. Use disposable volumes for corruption and snapshot tests.
+
+Demonstrate the stated writable limitations: a valid old snapshot may reopen, and scheduling/key-release controls alone do not fence a hostile host's retained guest. Tests must not report those behaviors as rollback resistance or secure exclusive ownership. Test restoration with external application state and ensure `/data` cannot bypass approved model identity.
+
+The first implementation milestone is private writable guest-managed storage in an isolated unprivileged test workload. The model deliverable remains publisher → registry → populator → PVC → guest verification → vLLM. Both profiles must pass their own security and lifecycle tests before they are combined in a separate KServe test, and before any production rollout.
